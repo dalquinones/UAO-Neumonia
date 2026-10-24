@@ -1,0 +1,50 @@
+# Pre-commit hooks — https://pre-commit.com
+#
+# Instalar (una vez por clon):   uv run pre-commit install
+# Ejecutar sobre todo el repo:   uv run pre-commit run --all-files
+# Herramientas: higiene de archivos + Ruff + uv-lock.
+
+default_language_version:
+  python: python3.13
+
+minimum_pre_commit_version: "3.7.0"
+fail_fast: false
+
+repos:
+  # --- Higiene general de archivos ---
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: check-added-large-files
+        args: ["--maxkb=2048"]
+      - id: check-case-conflict
+      - id: check-merge-conflict
+      - id: check-json
+      - id: check-toml
+      - id: check-yaml
+        args: ["--allow-multiple-documents"]
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+        args: ["--markdown-linebreak-ext=md"]
+      - id: mixed-line-ending
+      - id: detect-private-key
+
+  # --- Ruff: lint + formato (Astral) — local para garantizar el mismo ruff que `make check` ---
+  - repo: local
+    hooks:
+      - id: ruff-lint
+        name: ruff (lint)
+        entry: uv run ruff check --fix
+        language: system
+        types: [python]
+      - id: ruff-format
+        name: ruff format
+        entry: uv run ruff format
+        language: system
+        types: [python]
+
+  # --- uv: mantiene uv.lock sincronizado (Astral) ---
+  - repo: https://github.com/astral-sh/uv-pre-commit
+    rev: 0.12.2
+    hooks:
+      - id: uv-lock
