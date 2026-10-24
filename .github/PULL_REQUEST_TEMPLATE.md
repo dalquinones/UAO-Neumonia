@@ -42,5 +42,5 @@
 
 ## ¿A quién avisar?
 
-- **Code reviewer:** @<code-reviewer> — única persona que revisa, aprueba y hace merge
+- **Code reviewer:** @luisfermezaramrez-stack (Luis Fernando Meza) — única persona que revisa, aprueba y hace merge
 - **Iniciador (dueño del fork):** @JuanC0319
