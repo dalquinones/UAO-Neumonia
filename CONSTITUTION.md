@@ -148,8 +148,9 @@ es la puerta de entrada; la CI replica esa misma paridad en GitHub.
 - **Iniciador del proyecto** (dueño del fork `JuanC0319`): porta la infraestructura
   compartida (`test/conftest.py`, `test/README.md`, `verify_pipeline.py`), coordina el
   reparto y los pasos del taller. **NO revisa PRs.**
-- **Code Reviewer** (integrante designado): única persona que revisa, aprueba y hace
-  merge de los PRs hacia `feature/refactor-mvc`, y después hacia `develop`.
+- **Code Reviewer — Luis Fernando Meza (`@luisfermezaramrez-stack`)**: única persona
+  que revisa, aprueba y hace merge de los PRs hacia `feature/refactor-mvc`, y después
+  hacia `develop`.
 - **Cada integrante:** reclama su archivo del reparto de `test/README.md`
   (15+30+25+10+15+9+16 = 120), escribe sus pruebas y **sustenta lo que escribe**.
 - Antes de pedir review: `uv run python verify_pipeline.py` →
@@ -168,6 +169,7 @@ es la puerta de entrada; la CI replica esa misma paridad en GitHub.
 | 2026-10-24 | Estandar `jan-project-standard` aplicado: `Makefile`, pre-commit, `.editorconfig`, LICENSE MIT, CONTRIBUTING/CODE_OF_CONDUCT/AGENTS, README profesional con badges | Calidad automatizada (`make check` verde antes de push); puerta de entrada profesional al fork |
 | 2026-10-24 | CI `ci.yml` (pre-commit + recepción + pytest) y gobernanza GitHub (issue templates, labels, Dependabot) | Paridad local↔CI exigida por el estándar; la rúbrica pide CI/CD gobernado |
 | 2026-10-24 | Diagrama de arquitectura con Archify: `docs/arquitectura.json` (fuente) + `docs/arquitectura.html` | Documentación viva del MVC, respaldada por líneas del código (`meta.repository` pin `bf3eaf5`) |
+| 2026-10-24 | Code reviewer designado: **Luis Fernando Meza** (`@luisfermezaramrez-stack`) | Cierra el rol pendiente de §8; los PRs se dirigen con @mention real (notificaciones de GitHub) |
 
 ## 10. Roadmap y tareas pendientes
 

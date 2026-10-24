@@ -33,7 +33,7 @@
 ## 🚧 Estado del proyecto
 
 Refactor MVC en curso en la rama `feature/refactor-mvc` (PRs hacia `develop`,
-revisados por el code reviewer):
+revisados por el code reviewer @luisfermezaramrez-stack):
 
 - ✅ **Capa modelo + controlador** verificados: recepción (`verify_pipeline`),
   pytest, Ruff y `py_compile` en verde.
@@ -198,7 +198,7 @@ commits) y el [código de conducta](CODE_OF_CONDUCT.md). Destaca el flujo:
 
 - ramas `feature/<modulo>` → PR hacia `develop` con la
   [plantilla de PR](.github/pull_request_template.md);
-- el **code reviewer** designado es la única persona que revisa, aprueba y hace
+- el **code reviewer** — Luis Fernando Meza (`@luisfermezaramrez-stack`) — es la única persona que revisa, aprueba y hace
   merge; **nadie se auto-aprueba**;
 - cada integrante reclama su archivo del
   [reparto de tests](test/README.md) (15+30+25+10+15+9+16 = **120**) y

@@ -76,7 +76,8 @@ El proyecto usa **Gitflow académico** con dos ramas permanentes y roles separad
 4. Abre un Pull Request hacia `develop` (nunca hacia `main`).
 
 > 💡 **Regla de oro:** nunca hagas `push` "para ver si funciona". Verifica localmente
-> con `make check` antes de abrir el PR; el code reviewer aprueba y hace el merge.
+> con `make check` antes de abrir el PR; el code reviewer (`@luisfermezaramrez-stack`)
+> aprueba y hace el merge.
 
 ## 🧹 Estándares de código
 
