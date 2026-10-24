@@ -24,8 +24,10 @@ repos:
       - id: check-yaml
         args: ["--allow-multiple-documents"]
       - id: end-of-file-fixer
+        exclude: ^.*arquitectura\.html$   # artefacto generado por Archify (hash de receipts)
       - id: trailing-whitespace
         args: ["--markdown-linebreak-ext=md"]
+        exclude: ^.*arquitectura\.html$   # artefacto generado por Archify (hash de receipts)
       - id: mixed-line-ending
       - id: detect-private-key
 
