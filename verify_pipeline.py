@@ -39,7 +39,7 @@ def main() -> None:
     )
     check("read_img · preview DICOM es PIL.Image", type(preview_dcm).__name__ == "Image")
 
-    array_jpg, preview_jpg = read_image(str(DATA / "radiografia.jpg"))
+    array_jpg, _preview_jpg = read_image(str(DATA / "radiografia.jpg"))
     check(
         "read_img · JPG → 3 canales",
         array_jpg.ndim == 3 and array_jpg.shape[2] == 3,

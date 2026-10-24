@@ -12,7 +12,7 @@ usaba K.gradients, API de TF1 eliminada — bug corregido del refactor).
 import cv2
 import numpy as np
 
-from src.models.load_model import CONV_LAYER_NAME   # constante compartida
+from src.models.load_model import CONV_LAYER_NAME  # constante compartida
 
 DEFAULT_ALPHA = 0.4                                 # peso del mapa en la mezcla
 
@@ -31,7 +31,7 @@ def make_gradcam_heatmap(modelo, tensor, class_index=None):
     Raises:
         ValueError: si el modelo no expone la capa conv requerida.
     """
-    import tensorflow as tf          # lazy: misma convención de load_model
+    import tensorflow as tf  # lazy: misma convención de load_model
 
     try:
         conv_layer = modelo.get_layer(CONV_LAYER_NAME)
@@ -48,7 +48,7 @@ def make_gradcam_heatmap(modelo, tensor, class_index=None):
         conv_output, predictions = grad_model(tensor)
         indice = int(np.argmax(predictions[0])) if class_index is None else class_index
         loss = predictions[:, indice]                     # "qué tan segura es la clase"
-    grads = tape.gradient(loss, conv_output)              # dClae / dActivaciones
+    grads = tape.gradient(loss, conv_output)              # dClase / dActivaciones
     pooled_grads = tf.reduce_mean(grads, axis=(0, 1, 2))   # ① importancia por canal
     mapa = conv_output[0] @ pooled_grads[..., tf.newaxis]  # ② activaciones·importancia
     mapa = tf.maximum(mapa, 0.0)                            # ③ ReLU: solo aporta lo que SUMA

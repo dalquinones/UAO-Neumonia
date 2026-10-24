@@ -10,6 +10,12 @@ archivo real, nada (tests, CI, Docker CPU) carga TF.
 """
 import os
 from pathlib import Path
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    # Solo lo ven los verificadores de tipos (ruff/mypy/ty): el runtime NUNCA
+    # importa TF aquí — la carga real sigue diferida (lazy) dentro de la función.
+    import tensorflow as tf
 
 CONV_LAYER_NAME = "conv10_thisone"    # capa base de los mapas Grad-CAM
 OUTPUT_CLASSES = 3                    # bacteriana / normal / viral
@@ -34,7 +40,7 @@ def load_model(path: str | None = None) -> "tf.keras.Model":
     if not ruta.is_file():
         raise FileNotFoundError(f"No se encontró el archivo del modelo: {ruta}")
 
-    import tensorflow as tf          # lazy: solo si hay archivo real que abrir
+    import tensorflow as tf  # lazy: solo si hay archivo real que abrir
 
     modelo = tf.keras.models.load_model(str(ruta))
     _validate_architecture(modelo)
