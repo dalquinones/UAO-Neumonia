@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Arquitectura de UAO-Neumonía",
+    "output": "arquitectura_neumonia.html",
+    "quality_profile": "showcase",
+    "viewBox": [1000, 700]
+  },
+  "layout": {
+    "mode": "grid",
+    "cols": 3,
+    "gapX": 150,
+    "gapY": 150,
+    "cellW": 160,
+    "cellH": 64
+  },
+  "components": [
+    { "id": "ui", "type": "frontend", "label": "detector_neumonia.py", "sublabel": "Capa de Presentación (Tkinter)", "col": 1, "row": 0, "size": [160, 64] },
+    { "id": "read", "type": "backend", "label": "read_img.py", "sublabel": "Módulo 1: Lectura", "col": 0, "row": 1, "size": [160, 64] },
+    { "id": "int", "type": "backend", "label": "integrator.py", "sublabel": "Orquestador del Pipeline (Fachada)", "col": 1, "row": 1, "size": [160, 64] },
+    { "id": "pre", "type": "backend", "label": "preprocess_img.py", "sublabel": "Módulo 2: Preprocesamiento", "col": 0, "row": 2, "size": [160, 64] },
+    { "id": "load", "type": "backend", "label": "load_model.py", "sublabel": "Módulo 3: Carga CNN (Caché)", "col": 1, "row": 2, "size": [160, 64] },
+    { "id": "cam", "type": "backend", "label": "grad_cam.py", "sublabel": "Módulo 4: Grad-CAM", "col": 2, "row": 2, "size": [160, 64] }
+  ],
+  "connections": [
+    { "id": "ui-to-read", "from": "ui", "to": "read", "label": "Ruta de archivo", "fromSide": "left", "toSide": "top" },
+    { "id": "ui-to-int", "from": "ui", "to": "int", "label": "Arreglo NumPy RGB", "fromSide": "right", "toSide": "right" },
+    { "id": "int-to-pre", "from": "int", "to": "pre", "label": "Matriz original" },
+    { "id": "int-to-load", "from": "int", "to": "load", "label": "Solicitud modelo", "labelDy": 30 },
+    { "id": "int-to-cam", "from": "int", "to": "cam", "label": "Lote + Modelo", "fromSide": "right", "toSide": "left", "labelDy": -20 },
+    { "id": "cam-to-int", "from": "cam", "to": "int", "label": "Heatmap", "variant": "dashed", "fromSide": "top", "toSide": "right", "labelDy": -20 },
+    { "id": "int-to-ui", "from": "int", "to": "ui", "label": "Predicción + Heatmap", "variant": "emphasis", "fromSide": "left", "toSide": "left" }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "Capa de Presentación", "items": ["Tkinter GUI aislada de la lógica de TensorFlow."] },
+    { "dot": "emerald", "title": "Pipeline de Inferencia", "items": ["El integrador coordina lectura, preprocesamiento e inferencia."] }
+  ]
+}
