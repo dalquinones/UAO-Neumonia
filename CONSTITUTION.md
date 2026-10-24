@@ -19,9 +19,9 @@
 | **Descripción** | Detección rápida de neumonía con CNN sobre radiografías de tórax (DICOM/JPG), con Grad-CAM como explicabilidad, refactorizada a arquitectura MVC |
 | **Repositorio** | `git@github.com:JuanC0319/UAO-Neumonia.git` (fork académico del taller original) |
 | **Autoría** | Equipo del taller — iniciador del proyecto: Juan Camilo Perez — kamilo199603@gmail.com |
-| **Licencia** | Sin definir aún (la del fork original; decisión en backlog) |
+| **Licencia** | [MIT](LICENSE) (fork académico; © 2026 Juan Camilo Perez) |
 | **Rama de integración** | `develop` (Gitflow) |
-| **Estado** | Refactor MVC completo — vista/Docker/CI/PDF pendientes 🚧 |
+| **Estado** | Refactor MVC completo + estandar aplicado (Makefile, pre-commit, CI, Archify) — vista/Docker/PDF pendientes 🚧 |
 
 ## 1. Propósito y no-propósito
 
@@ -58,10 +58,13 @@ estándar personal (`uv_build`) — el proyecto corre en **modo virtual** (ver �
 | **Lenguaje** | Python 3.13 (`.python-version` — pin real 3.13.16) |
 | **Gestor de paquetes y entorno** | [`uv`](https://docs.astral.sh/uv/) — **único**, `uv.lock` versionado |
 | **Testing** | [`pytest`](https://docs.pytest.org/) (`testpaths = ["test"]`, `pythonpath = ["."]`) |
-| **Linting / Formato** | [Ruff](https://docs.astral.sh/ruff/) |
-| **CI/CD** | GitHub Actions (por integrar: `ruff` + `pytest`) |
+| **Linting / Formato** | [Ruff](https://docs.astral.sh/ruff/) (line-length = 100) |
+| **Higiene de commits** | [`pre-commit`](https://pre-commit.com/) (Ruff + higiene de archivos + `uv-lock`) |
+| **Interfaz de tareas** | `Makefile` — `make check` (lint + formato + recepción + pruebas) |
+| **CI/CD** | GitHub Actions — [`.github/workflows/ci.yml`](.github/workflows/ci.yml) (paridad local↔CI) |
 | **DeepLearning** | TensorFlow (SOLO en Docker/CI; lazy en local) |
 | **Visión/DICOM** | OpenCV `4.12.0.88` headless · pydicom · Pillow |
+| **Diagramas** | [Archify](https://github.com/tt-a1i/archify) — `docs/arquitectura.{json,html}` |
 
 > ⚠️ **Regla dura:** toda gestión de dependencias y entornos pasa por `uv`. Está
 > **prohibido** `pip`, `conda` y `requirements.txt`. Dependencias nuevas SOLO con
@@ -76,9 +79,14 @@ UAO-Neumonia/
 ├── src/views/             # interfaz gráfica (en construcción)
 ├── test/                  # conftest.py (dobles), test_fakes.py (9) y reparto de 120
 ├── data/                  # fixtures reales committeadas (normal.dcm, radiografia.jpg)
-├── .github/               # plantilla de PR (CI, Dependabot: backlog)
+├── docs/arquitectura.{json,html}  # diagrama Archify (JSON = fuente versionada)
+├── .github/               # ci.yml · PR template · issue templates · labels · dependabot
+├── AGENTS.md              # contexto para asistentes LLM (+ .opencode/rules/tgrep.md)
 ├── CONSTITUTION.md        # este archivo — verdad central
 ├── CONVENCIONES.md        # contrato de trabajo del equipo
+├── CONTRIBUTING.md + CODE_OF_CONDUCT.md
+├── LICENSE                # MIT (fork académico)
+├── Makefile + .pre-commit-config.yaml + .editorconfig
 ├── pyproject.toml + uv.lock
 └── verify_pipeline.py     # verificador de recepción (7 checks)
 ```
@@ -110,13 +118,17 @@ UAO-Neumonia/
 | Herramienta | Rol | Comando |
 |-------------|-----|---------|
 | `uv` | Entornos y dependencias | `uv sync` |
-| `verify_pipeline.py` | Verificación de recepción (7 checks) | `uv run python verify_pipeline.py` |
-| Ruff | Lint | `uv run ruff check .` |
-| pytest | Pruebas | `uv run pytest -v` |
-| GitHub Actions | CI `ruff + pytest` | por crear (Paso 5) |
+| `Makefile` | Interfaz de tareas (paridad local↔CI) | `make check` |
+| `verify_pipeline.py` | Verificación de recepción (7 checks) | `make verify` / `uv run python verify_pipeline.py` |
+| Ruff | Lint y formato | `make lint` / `make format` |
+| pre-commit | Higiene + Ruff + `uv-lock` antes de cada commit | `uv run pre-commit run --all-files` |
+| pytest | Pruebas (AAA, sin TF local) | `make test` / `uv run pytest -v` |
+| GitHub Actions | CI: `ci.yml` (pre-commit + recepción + pytest) | automático en push/PR (`main`, `develop`) |
+| Archify | Diagrama de arquitectura desde código | `docs/arquitectura.{json,html}` |
 
 Nada se sube con la verificación en rojo; se prohíbe saltarse verificaciones sin causa
-documentada en el propio commit.
+documentada en el propio commit (`--no-verify` de pre-commit incluido). `make check`
+es la puerta de entrada; la CI replica esa misma paridad en GitHub.
 
 ## 7. Repositorio y Git
 
@@ -124,6 +136,9 @@ documentada en el propio commit.
 - **Gitflow:** `feature/…` → PR (plantilla obligatoria) → `develop` → `main` al cierre.
 - **Commits:** [Conventional Commits](https://www.conventionalcommits.org/) en español e
   imperativo: `feat:`, `fix:`, `docs:`, `refactor:`, `test:`, `chore:`.
+- **Gobernanza GitHub:** plantilla de PR con checklist; issue templates (bug,
+  funcionalidad, spike); labels sincronizadas vía `.github/labels.yml`; Dependabot
+  (`pyproject` + Actions); protección de ramas al cerrar hacia `main`.
 - **Identidad git:** ver §11 (configuración local de máquina; nunca versionada).
 
 ## 8. Flujo de trabajo del equipo
@@ -145,11 +160,14 @@ documentada en el propio commit.
 | Fecha | Decisión | Motivo |
 |-------|----------|--------|
 | 2026-10-19 | `uv` como único gestor; Python 3.13; pins exactos (`opencv==4.12.0.88`, `numpy<2.3`) | Mac Intel x86_64 macOS 13.7: OpenCV 5.x y TF no tienen ruedas aplicables localmente |
-| 2026-10-19 | Proyecto **virtual** (sin paquete ni build-system; imports `src.*` vía `pythonpath`) | App de taller; liena con el env a partir del layout del estándar personal si se migrara |
+| 2026-10-19 | Proyecto **virtual** (sin paquete ni build-system; imports `src.*` vía `pythonpath`) | App de taller; en línea con el estándar personal (se migraría a layout de paquete si se decidiera) |
 | 2026-10-20 | Refactor MVC: módulos modelo + controlador `Integrator` con DI | Sustentabilidad, testabilidad y separación de responsabilidades |
 | 2026-10-20 | Patrón TF-lazy + `FakeModel`/`FakeNet` | 120 tests en verde sin TF local; TF real solo en Docker/CI |
 | 2026-10-20 | Gitflow con PRs y plantilla; `CONVENCIONES.md` | La rúbrica exige colaboración gobernada |
-| 2026-10-21 | `CONSTITUTION.md` como fuente única de verdad; retiro definitivo de `requirements.txt` | Estandar del equipo; fin de conda/pip |
+| 2026-10-21 | `CONSTITUTION.md` como fuente única de verdad; retiro definitivo de `requirements.txt` | Estándar del equipo; fin de conda/pip |
+| 2026-10-24 | Estandar `jan-project-standard` aplicado: `Makefile`, pre-commit, `.editorconfig`, LICENSE MIT, CONTRIBUTING/CODE_OF_CONDUCT/AGENTS, README profesional con badges | Calidad automatizada (`make check` verde antes de push); puerta de entrada profesional al fork |
+| 2026-10-24 | CI `ci.yml` (pre-commit + recepción + pytest) y gobernanza GitHub (issue templates, labels, Dependabot) | Paridad local↔CI exigida por el estándar; la rúbrica pide CI/CD gobernado |
+| 2026-10-24 | Diagrama de arquitectura con Archify: `docs/arquitectura.json` (fuente) + `docs/arquitectura.html` | Documentación viva del MVC, respaldada por líneas del código (`meta.repository` pin `bf3eaf5`) |
 
 ## 10. Roadmap y tareas pendientes
 
@@ -162,10 +180,13 @@ documentada en el propio commit.
       `Integrator.explain()`
 - [x] **Cierre del refactor:** `git rm detector_neumonia.py` + README migrado a la
       arquitectura MVC + `requirements.txt` retirado (2026-10-24)
+- [x] **Estandar de proyecto aplicado:** Makefile + pre-commit + LICENSE MIT +
+      README profesional (badges, TOC) + diagrama Archify + gobernanza GitHub
+      (`ci.yml`, issue templates, labels, Dependabot) (2026-10-24)
 - [ ] **Paso 4:** Dockerfile `python:3.13-slim` + `uv` (CPU, `MODEL_PATH`) + `.dockerignore`
-- [ ] **Paso 5:** CI GitHub Actions (`ruff` + `pytest`) y merge `feature` → `develop`
+- [ ] **Paso 5:** aplicar CI a la rama (merge `feature` → `develop` con aprobación del
+      reviewer; el `ci.yml` ya existe) + protección de `main`
 - [ ] **Paso 6:** reporte PDF (diagrama MVC, evidencias, decisiones)
-- [ ] Licencia (decisión del fork) y gobernanza extra (Dependabot, labels, issues)
 
 ## 11. Configuración local (no trackear)
 
