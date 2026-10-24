@@ -16,6 +16,7 @@ dependencies = [
 
 [tool.pytest.ini_options]
 testpaths = ["test"]
+pythonpath = ["."]
 
 [dependency-groups]
 dev = [

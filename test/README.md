@@ -37,7 +37,8 @@ Reglas:
 | `test/test_integrator.py` | integrator | 25 | (reclamar) |
 | `test/test_load_model.py` | load_model | 10 | (reclamar) |
 | `test/test_grad_cam.py` | grad_cam | 15 | (reclamar) |
-| `test/test_pipeline_e2e.py` | pipeline completo | 25 | (reclamar) |
+| `test/test_fakes.py` | infraestructura (conftest) | 9 | Iniciador |
+| `test/test_pipeline_e2e.py` | pipeline completo | 16 | (reclamar) |
 | **Total** | | **120** | |
 
 **Idea clave por archivo** (qué cubrir):
@@ -58,6 +59,6 @@ uv run ruff check .                        # 3) estilo limpio
 
 Después: PR hacia `feature/refactor-mvc` con la plantilla (incluye sección de evidencia).
 
-> La pieza compartida `conftest.py` (con el FakeModel y fixtures) es responsabilidad
-> del líder + revisión — créala ANTES que las n pruebas de tu módulo no; espera el PR
-> que la traiga o coordina con el líder.
+> La pieza compartida `conftest.py` ya existe en esta carpeta: léela antes de
+> escribir tus pruebas — tus fixtures (FakeModel, FakeNet, rutas de data/)
+> están listos para inyectarse por nombre.
