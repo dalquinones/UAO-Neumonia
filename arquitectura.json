@@ -1,0 +1,134 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Arquitectura Modular: Detector de Neumonía",
+    "subtitle": "UI Desacoplada · Patrón Fachada · Explicabilidad Grad-CAM",
+    "output": "docs/arquitectura.html",
+    "animation": "trace",
+    "visual_preset": "blueprint",
+    "quality_profile": "showcase"
+  },
+  "components": [
+    {
+      "id": "user",
+      "type": "external",
+      "label": "Radiólogo / Usuario",
+      "sublabel": "Médico",
+      "pos": [50, 200],
+      "size": [150, 60]
+    },
+    {
+      "id": "ui",
+      "type": "frontend",
+      "label": "Interfaz Gráfica (GUI)",
+      "sublabel": "detector_neumonia.py (Tkinter)",
+      "pos": [280, 200],
+      "size": [200, 60]
+    },
+    {
+      "id": "integrator",
+      "type": "backend",
+      "label": "Orquestador / Fachada",
+      "sublabel": "integrator.py",
+      "pos": [560, 200],
+      "size": [200, 60]
+    },
+    {
+      "id": "reader",
+      "type": "backend",
+      "label": "Lectura de Imágenes",
+      "sublabel": "read_img.py (DICOM/JPG)",
+      "pos": [850, 50],
+      "size": [200, 60]
+    },
+    {
+      "id": "model",
+      "type": "database",
+      "label": "Modelo Convolucional",
+      "sublabel": "load_model.py (.h5)",
+      "pos": [850, 200],
+      "size": [200, 60]
+    },
+    {
+      "id": "gradcam",
+      "type": "backend",
+      "label": "Motor Grad-CAM",
+      "sublabel": "grad_cam.py",
+      "pos": [850, 350],
+      "size": [200, 60]
+    },
+    {
+      "id": "preprocess",
+      "type": "backend",
+      "label": "Preprocesamiento",
+      "sublabel": "preprocess_img.py (CLAHE)",
+      "pos": [1150, 350],
+      "size": [200, 60]
+    }
+  ],
+  "connections": [
+    {
+      "id": "user-ui",
+      "from": "user",
+      "to": "ui",
+      "variant": "emphasis"
+    },
+    {
+      "id": "ui-integrator",
+      "from": "ui",
+      "to": "integrator",
+      "variant": "emphasis"
+    },
+    {
+      "id": "integrator-reader",
+      "from": "integrator",
+      "to": "reader",
+      "variant": "solid"
+    },
+    {
+      "id": "integrator-model",
+      "from": "integrator",
+      "to": "model",
+      "variant": "solid"
+    },
+    {
+      "id": "integrator-gradcam",
+      "from": "integrator",
+      "to": "gradcam",
+      "variant": "emphasis"
+    },
+    {
+      "id": "gradcam-preprocess",
+      "from": "gradcam",
+      "to": "preprocess",
+      "variant": "solid"
+    },
+    {
+      "id": "gradcam-model",
+      "from": "gradcam",
+      "to": "model",
+      "variant": "dashed"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "Clean Architecture",
+      "items": [
+        "La UI no conoce la lógica médica",
+        "integrator.py funciona como un Patrón Fachada",
+        "Alta cohesión y bajo acoplamiento"
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "Explicabilidad (XAI)",
+      "items": [
+        "Se extraen gradientes para justificar predicción",
+        "Superposición de Heatmaps en 512x512",
+        "Uso de CLAHE para mejor contraste"
+      ]
+    }
+  ]
+}

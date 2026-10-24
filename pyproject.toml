@@ -1,0 +1,35 @@
+[project]
+name = "uao-neumonia"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "marlonvalenciamentor-eng", email = "marlonvalenciamentor@gmail.com" }
+]
+requires-python = ">=3.13"
+dependencies = [
+    "opencv-python>=4.0.0",
+    "pillow>=10.0.0",
+    "pydicom>=2.4.0",
+    "tensorflow>=2.15.0",
+    "tf-keras>=2.15.0",
+    "numpy>=1.24.0"
+]
+
+[project.scripts]
+uao-neumonia = "uao_neumonia:main"
+
+[build-system]
+requires = ["uv_build>=0.12.9,<0.13.0"]
+build-backend = "uv_build"
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+]
