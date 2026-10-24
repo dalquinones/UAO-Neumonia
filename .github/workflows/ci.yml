@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: Calidad
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Instalar uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+
+      - name: Sincronizar entorno
+        run: uv sync --all-groups
+
+      - name: Pre-commit (higiene + Ruff + uv-lock)
+        run: uv run pre-commit run --all-files --show-diff-on-failure
+
+      - name: Recepción del entorno (verificador del pipeline)
+        run: uv run python verify_pipeline.py
+
+      - name: Pruebas
+        run: uv run pytest

@@ -1,0 +1,93 @@
+name: "🐛 Reporte de bug"
+description: "Reporta un comportamiento inesperado, un fallo o una regresión."
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ¡Gracias por tomarte el tiempo de reportar un bug! 🙌
+
+        Antes de continuar, revisa que no exista un issue similar abierto y consulta
+        [`CONSTITUTION.md`](https://github.com/JuanC0319/UAO-Neumonia/blob/main/CONSTITUTION.md).
+
+  - type: textarea
+    id: descripcion
+    attributes:
+      label: "Descripción del problema"
+      description: "Explica de forma clara y concisa qué está fallando."
+      placeholder: "Al ejecutar `uv run ...` el sistema ..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduccion
+    attributes:
+      label: "Pasos para reproducir"
+      description: "Pasos mínimos y deterministas que permitan reproducir el fallo."
+      placeholder: |
+        1. Clonar el repositorio y ejecutar `uv sync`
+        2. Ejecutar `...`
+        3. Observar `...`
+    validations:
+      required: true
+
+  - type: textarea
+    id: esperado
+    attributes:
+      label: "Comportamiento esperado"
+      description: "¿Qué debería haber ocurrido?"
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: "Comportamiento actual"
+      description: "¿Qué ocurrió en realidad? Incluye el mensaje de error si aplica."
+    validations:
+      required: true
+
+  - type: dropdown
+    id: componente
+    attributes:
+      label: "Componente afectado"
+      options:
+        - "Backend / API"
+        - "Interfaz / frontend"
+        - "Datos / procesamiento"
+        - "Modelos / ML"
+        - "Entorno / tooling (uv, pruebas)"
+        - "Documentación"
+        - "Otro"
+      multiple: true
+    validations:
+      required: false
+
+  - type: input
+    id: entorno
+    attributes:
+      label: "Entorno"
+      description: "Sistema operativo, versión de Python y versión de `uv`."
+      placeholder: "macOS 14 · Python 3.13 · uv 0.12.2"
+    validations:
+      required: false
+
+  - type: textarea
+    id: evidencia
+    attributes:
+      label: "Evidencia / logs"
+      description: "Trazas de error, salida de consola o capturas de pantalla."
+      render: shell
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: confirmaciones
+    attributes:
+      label: "Confirmaciones"
+      options:
+        - label: "Busqué issues existentes y no encontré un duplicado."
+          required: true
+        - label: "El fallo es reproducible con el estado actual de `main`."
+          required: true

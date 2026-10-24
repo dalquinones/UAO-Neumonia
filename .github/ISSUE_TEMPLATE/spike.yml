@@ -1,0 +1,78 @@
+name: "🔬 Investigación / Spike"
+description: "Propón una exploración técnica acotada, con pregunta, timebox y entregable claros."
+title: "[Spike]: "
+labels: ["spike"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Un **spike** es una investigación acotada en el tiempo para reducir incertidumbre
+        técnica antes de comprometer una implementación. Su objetivo es **aprender**, no
+        entregar código de producción. 🧪
+
+        Define siempre una **pregunta** y un **timebox**: al vencerlo, se documenta el
+        hallazgo (aunque sea negativo) y se decide el siguiente paso.
+
+  - type: textarea
+    id: pregunta
+    attributes:
+      label: "Pregunta de investigación / hipótesis"
+      description: "¿Qué incógnita técnica se busca resolver y qué se espera encontrar?"
+      placeholder: "¿Es viable usar ... para ... ?"
+    validations:
+      required: true
+
+  - type: textarea
+    id: contexto
+    attributes:
+      label: "Contexto y motivación"
+      description: "Por qué es necesaria esta investigación ahora y qué riesgo mitiga."
+    validations:
+      required: true
+
+  - type: textarea
+    id: alcance
+    attributes:
+      label: "Alcance y entregable esperado"
+      description: "Qué se construirá o evaluará y qué quedará como evidencia."
+      placeholder: "Prototipo mínimo + tabla comparativa + nota de hallazgos en `docs/`."
+    validations:
+      required: true
+
+  - type: textarea
+    id: criterios
+    attributes:
+      label: "Criterios de finalización"
+      description: "Condiciones que marcan el fin de la investigación (no de la implementación)."
+      placeholder: |
+        - [ ] Se respondió la pregunta con evidencia.
+        - [ ] Se documentó el hallazgo y la recomendación.
+    validations:
+      required: true
+
+  - type: input
+    id: timebox
+    attributes:
+      label: "Timebox"
+      description: "Límite de tiempo para la exploración (no negociable)."
+      placeholder: "3 días hábiles"
+    validations:
+      required: true
+
+  - type: textarea
+    id: referencias
+    attributes:
+      label: "Recursos y referencias"
+      description: "Documentación, papers, repositorios o ejemplos de partida."
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: confirmaciones
+    attributes:
+      label: "Confirmaciones"
+      options:
+        - label: "Busqué spikes o issues previos sobre el mismo tema y no encontré un duplicado."
+          required: true
+        - label: "Entiendo que el entregable es un hallazgo documentado, no código listo para producción."
+          required: true

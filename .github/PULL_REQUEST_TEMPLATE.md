@@ -35,6 +35,12 @@
 (paste aquí la salida de tus pruebas/verificaciones)
 ```
 
+## Checklist del estándar (jan-project-standard)
+
+- [ ] Si el cambio es arquitectónico/técnico/de proceso: `CONSTITUTION.md` actualizado **en el mismo commit**
+- [ ] `uv.lock` sincronizado vía `uv add`/`uv sync` (nunca editado a mano)
+
 ## ¿A quién avisar?
 
-@JuanC0319 (revisor) — @<compañera> 
+- **Code reviewer:** @<code-reviewer> — única persona que revisa, aprueba y hace merge
+- **Iniciador (dueño del fork):** @JuanC0319
