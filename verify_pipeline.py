@@ -13,6 +13,7 @@ imágenes de `data/` (que viajan en el repo) y un FakeModel (sin TF):
 
 Si falla un check, el script aborta con código 1 (útil también en CI).
 """
+
 import sys
 from pathlib import Path
 
@@ -65,6 +66,7 @@ def main() -> None:
 
     class FakeModel:
         """Stub con la misma interfaz que un modelo Keras."""
+
         def predict(self, x):
             assert x.shape == (1, 512, 512, 1), "contrato del tensor incumplido"
             return [[0.1, 0.7, 0.2]]

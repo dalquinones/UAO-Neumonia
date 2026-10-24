@@ -9,6 +9,7 @@ El modelo se INYECTA en el constructor (inyección de dependencias):
 Así el controlador no sabe cuál está usando → se prueba localmente
 sin TF y cambia de entorno (Mac/CI/Docker) sin tocar código.
 """
+
 from pathlib import Path
 
 import numpy as np

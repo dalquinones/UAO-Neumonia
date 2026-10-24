@@ -8,6 +8,7 @@ Donde:
 
 Este módulo NO sabe nada de redes neuronales ni de la interfaz.
 """
+
 from pathlib import Path
 
 import cv2
@@ -35,15 +36,15 @@ def read_dicom(path: str) -> tuple[np.ndarray, Image.Image]:
         FileNotFoundError: si la ruta no existe.
     """
     _check_exists(path)
-    dcm = pydicom.dcmread(path)                       # ① parser DICOM
-    pixel = dcm.pixel_array.astype(float)             # ② copia como float
+    dcm = pydicom.dcmread(path)  # ① parser DICOM
+    pixel = dcm.pixel_array.astype(float)  # ② copia como float
     maximo = pixel.max()
-    if maximo == 0:                                   # ③ defensa de caso borde
+    if maximo == 0:  # ③ defensa de caso borde
         gray = np.zeros_like(pixel, dtype=np.uint8)
     else:
-        gray = np.uint8((np.maximum(pixel, 0) / maximo) * 255.0)   # ④ normaliza
-    bgr = cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR)      # ⑤ unifica convención
-    preview = Image.fromarray(gray)                   # ⑥ la que pinta la UI
+        gray = np.uint8((np.maximum(pixel, 0) / maximo) * 255.0)  # ④ normaliza
+    bgr = cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR)  # ⑤ unifica convención
+    preview = Image.fromarray(gray)  # ⑥ la que pinta la UI
     return bgr, preview
 
 
@@ -60,8 +61,8 @@ def read_image(path: str) -> tuple[np.ndarray, Image.Image]:
         FileNotFoundError: si la ruta no existe o no se puede leer.
     """
     _check_exists(path)
-    img = cv2.imread(path)                            # ⑦ OpenCV lee en BGR
-    if img is None:                                   # ⑧ ruta corrupta/admitida errada
+    img = cv2.imread(path)  # ⑦ OpenCV lee en BGR
+    if img is None:  # ⑧ ruta corrupta/admitida errada
         raise FileNotFoundError(f"No se pudo leer la imagen: {path}")
     preview = Image.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
     return img, preview
