@@ -16,68 +16,86 @@ Aplicación de una técnica de explicación llamada Grad-CAM para resaltar con u
 
 A continuación le explicaremos cómo empezar a utilizarla.
 
-Requerimientos necesarios para el funcionamiento:
+## Estado del repositorio (en refactor)
 
-- Instale Anaconda para Windows siguiendo las siguientes instrucciones:
-  https://docs.anaconda.com/anaconda/install/windows/
-
-- Abra Anaconda Prompt y ejecute las siguientes instrucciones:
-
-  conda create -n tf tensorflow
-
-  conda activate tf
-
-  cd UAO-Neumonia
-
-  pip install -r requirements.txt
-
-  python detector_neumonia.py
-
-Uso de la Interfaz Gráfica:
-
-- Ingrese la cédula del paciente en la caja de texto
-- Presione el botón 'Cargar Imagen', seleccione la imagen del explorador de archivos del computador (Imagenes de prueba en https://drive.google.com/drive/folders/1WOuL0wdVC6aojy8IfssHcqZ4Up14dy0g?usp=drive_link)
-- Presione el botón 'Predecir' y espere unos segundos hasta que observe los resultados
-- Presione el botón 'Guardar' para almacenar la información del paciente en un archivo excel con extensión .csv
-- Presione el botón 'PDF' para descargar un archivo PDF con la información desplegada en la interfaz
-- Presión el botón 'Borrar' si desea cargar una nueva imagen
+- Migración MVC completa: `src/models` + `src/controllers` verificados (recepción,
+  pytest, ruff y py_compile en verde); vista `src/views` a cargo de un integrante.
+- **Fuente única de verdad:** [`CONSTITUTION.md`](CONSTITUTION.md) · contrato de
+  equipo: [`CONVENCIONES.md`](CONVENCIONES.md).
+- Rama activa: `feature/refactor-mvc` → PRs hacia `develop` (revisa el code reviewer).
 
 ---
 
-## Arquitectura de archivos propuesta.
+## Uso de la herramienta (todo con `uv`)
 
-## detector_neumonia.py
+> Regla dura del proyecto: la gestión de dependencias y entornos pasa por
+> [`uv`](https://docs.astral.sh/uv/). `pip`, `conda` y `requirements.txt` están
+> prohibidos.
 
-Contiene el diseño de la interfaz gráfica utilizando Tkinter.
+1. Instale `uv` si no lo tiene:
 
-Los botones llaman métodos contenidos en otros scripts.
+   ```bash
+   # macOS / Linux
+   curl -LsSf https://astral.sh/uv/install.sh | sh
+   # Windows (PowerShell)
+   powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+   ```
 
-## integrator.py
+2. Clone el repositorio y entre a la carpeta:
 
-Es un módulo que integra los demás scripts y retorna solamente lo necesario para ser visualizado en la interfaz gráfica.
-Retorna la clase, la probabilidad y una imagen el mapa de calor generado por Grad-CAM.
+   ```bash
+   git clone https://github.com/JuanC0319/UAO-Neumonia.git
+   cd UAO-Neumonia
+   ```
 
-## read_img.py
+3. Cree el entorno determinista desde `pyproject.toml` + `uv.lock`:
 
-Script que lee la imagen en formato DICOM para visualizarla en la interfaz gráfica. Además, la convierte a arreglo para su preprocesamiento.
+   ```bash
+   uv sync
+   ```
 
-## preprocess_img.py
+4. Copie el modelo entrenado `WilhemNet_86.h5` en la raíz del proyecto (no se versiona
+   por peso; lo comparte el equipo por unidad externa).
 
-Script que recibe el arreglo proveniento de read_img.py, realiza las siguientes modificaciones:
+5. Verifique que el entorno está sano:
 
-- resize a 512x512
-- conversión a escala de grises
-- ecualización del histograma con CLAHE
-- normalización de la imagen entre 0 y 1
-- conversión del arreglo de imagen a formato de batch (tensor)
+   ```bash
+   uv run python verify_pipeline.py
+   ```
 
-## load_model.py
+> Nota: en macOS Intel TensorFlow no tiene rueda oficial y vuela fuera del entorno
+> local. El modelo se carga de forma diferida (patrón TF-lazy) y TensorFlow real solo
+> entra en juego dentro de Docker/CI.
 
-Script que lee el archivo binario del modelo de red neuronal convolucional previamente entrenado llamado 'WilhemNet86.h5'.
+Uso de la Interfaz Gráfica:
 
-## grad_cam.py
+> La interfaz se rehace en `src/views/` sobre el `Integrator` (decisión Tkinter vs
+> Streamlit pendiente del equipo). El flujo de la UI legada (cédula, 'Cargar Imagen',
+> 'Predecir', 'Guardar' CSV, 'PDF', 'Borrar') es el contrato funcional que la nueva
+> vista debe replicar.
 
-Script que recibe la imagen y la procesa, carga el modelo, obtiene la predicción y la capa convolucional de interés para obtener las características relevantes de la imagen.
+---
+
+## Arquitectura (MVC)
+
+```text
+src/
+├── models/                # capa modelo — aquí vive TODO lo pesado
+│   ├── read_img.py        #   DICOM/JPG → (array BGR uint8, preview PIL)
+│   ├── preprocess_img.py  #   tensor (1, 512, 512, 1) float32 [0-1] con CLAHE
+│   ├── load_model.py      #   carga lazy de TF + validación de WilhemNet_86
+│   └── grad_cam.py        #   heatmap Grad-CAM + overlay (explicabilidad)
+├── controllers/
+│   └── integrator.py      # fachada única con modelo INYECTADO (DI)
+└── views/                 # interfaz gráfica (decisión Tkinter vs Streamlit en curso)
+```
+
+Reglas MVC (detalle en [`CONSTITUTION.md`](CONSTITUTION.md) §5):
+
+- La vista NUNCA importa `tensorflow`/`cv2`/`pydicom`: solo habla con `Integrator`.
+- Solo `load_model.py` conoce TensorFlow y lo importa de forma diferida (*lazy*).
+- El modelo entra por inyección: producción = Keras real; pruebas = `FakeModel`
+  (dobles en `test/conftest.py`) — así los 120 tests AAA corren sin TF en local.
 
 ---
 
