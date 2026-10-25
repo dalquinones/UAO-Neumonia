@@ -1,0 +1,29 @@
+name: Labels
+
+# Sincroniza las etiquetas del repositorio desde .github/labels.yml.
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - .github/labels.yml
+      - .github/workflows/labels.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  labeler:
+    name: Sync labels
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Apply labels
+        uses: crazy-max/ghaction-github-labeler@v5
+        with:
+          yaml: .github/labels.yml
+          # No borra etiquetas que no estén en el archivo (evita sorpresas).
+          skip-delete: true

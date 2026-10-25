@@ -1,38 +1,72 @@
-## Hola! Bienvenido a la herramienta para la detección rápida de neumonía
+# UAO-Neumonia
 
-Deep Learning aplicado en el procesamiento de imágenes radiográficas de tórax en formato DICOM con el fin de clasificarlas en 3 categorías diferentes:
+[![CI](https://github.com/JuanC0319/UAO-Neumonia/actions/workflows/ci.yml/badge.svg)](https://github.com/JuanC0319/UAO-Neumonia/actions/workflows/ci.yml)
+[![Python](https://img.shields.io/badge/python-3.13-3776AB)](https://www.python.org/)
+[![uv](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fastral-sh%2Fuv%2Fmain%2Fassets%2Fbadge.json)](https://docs.astral.sh/uv/)
+[![Ruff](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fastral-sh%2Fruff%2Fmain%2Fassets%2Fbadge%2Fv2.json)](https://docs.astral.sh/ruff/)
+[![Licencia](https://img.shields.io/badge/licencia-MIT-green)](LICENSE)
+[![Commits](https://img.shields.io/badge/commits-Conventional%20-fe5100)](https://www.conventionalcommits.org/)
 
-1. Neumonía Bacteriana
-
-2. Neumonía Viral
-
-3. Sin Neumonía
-
-Aplicación de una técnica de explicación llamada Grad-CAM para resaltar con un mapa de calor las regiones relevantes de la imagen de entrada.
-
----
-
-## Uso de la herramienta:
-
-A continuación le explicaremos cómo empezar a utilizarla.
-
-## Estado del repositorio (en refactor)
-
-- Migración MVC completa: `src/models` + `src/controllers` verificados (recepción,
-  pytest, ruff y py_compile en verde); vista `src/views` a cargo de un integrante.
-- **Fuente única de verdad:** [`CONSTITUTION.md`](CONSTITUTION.md) · contrato de
-  equipo: [`CONVENCIONES.md`](CONVENCIONES.md).
-- Rama activa: `feature/refactor-mvc` → PRs hacia `develop` (revisa el code reviewer).
+> **Hola y bienvenido a la herramienta para la detección rápida de neumonía.**
+> Deep Learning aplicado al procesamiento de imágenes radiográficas de tórax en
+> formato DICOM, para clasificarlas en **3 categorías**: Neumonía Bacteriana,
+> Neumonía Viral y Sin Neumonía — con **Grad-CAM** para resaltar con un mapa de
+> calor las regiones relevantes de la imagen de entrada.
 
 ---
 
-## Uso de la herramienta (todo con `uv`)
+## 📑 Tabla de contenidos
 
-> Regla dura del proyecto: la gestión de dependencias y entornos pasa por
+- [Estado del proyecto](#-estado-del-proyecto)
+- [Stack](#-stack)
+- [Primeros pasos](#-primeros-pasos)
+- [Uso](#-uso)
+- [Arquitectura (MVC)](#-arquitectura-mvc)
+- [Calidad](#-calidad)
+- [Acerca del modelo](#-acerca-del-modelo)
+- [Acerca de Grad-CAM](#-acerca-de-grad-cam)
+- [Contribución](#-contribución)
+- [Licencia y créditos](#-licencia-y-créditos)
+
+---
+
+## 🚧 Estado del proyecto
+
+Refactor MVC en curso en la rama `feature/refactor-mvc` (PRs hacia `develop`,
+revisados por el code reviewer @luisfermezaramrez-stack):
+
+- ✅ **Capa modelo + controlador** verificados: recepción (`verify_pipeline`),
+  pytest, Ruff y `py_compile` en verde.
+- ✅ **Estandarización**: `uv` único, `Makefile`, pre-commit, Ruff, CI, licencia
+  MIT y [arquitectura versionada con Archify](docs/arquitectura.html).
+- 🚧 **Vista** (`src/views/`) a cargo de un integrante (decisión Tkinter vs
+  Streamlit pendiente del equipo).
+- 🚧 **Pendientes**: Docker (uv, Paso 4), merge a `develop`, reporte PDF.
+
+La **fuente única de verdad** del proyecto es [`CONSTITUTION.md`](CONSTITUTION.md);
+el contrato de trabajo del equipo vive en [`CONVENCIONES.md`](CONVENCIONES.md).
+
+## 🧰 Stack
+
+| Categoría | Tecnología |
+|-----------|------------|
+| Lenguaje | Python **3.13** (`.python-version`) |
+| Gestor de paquetes y entornos | [`uv`](https://docs.astral.sh/uv/) — **único** (`pip`/`conda` prohibidos) |
+| Pruebas | `pytest` con dobles + fixtures (patrón AAA; corren **sin TensorFlow**) |
+| Lint y formato | [Ruff](https://docs.astral.sh/ruff/) (line-length 100) |
+| Higiene de commits | `pre-commit` (Ruff + higiene de archivos + `uv-lock`) |
+| Tareas | `Makefile` (`make check` = lint + formato + recepción + pruebas) |
+| CI | [GitHub Actions](.github/workflows/ci.yml) — paridad con `make check` |
+| Visión / DICOM | OpenCV `4.12.0.88` headless · pydicom · Pillow |
+| Deep Learning | TensorFlow — **solo Docker/CI**; carga diferida (*lazy*) en local |
+
+## 🚀 Primeros pasos
+
+> **Regla dura:** toda gestión de dependencias y entornos pasa por
 > [`uv`](https://docs.astral.sh/uv/). `pip`, `conda` y `requirements.txt` están
 > prohibidos.
 
-1. Instale `uv` si no lo tiene:
+1. Instale `uv`:
 
    ```bash
    # macOS / Linux
@@ -48,35 +82,45 @@ A continuación le explicaremos cómo empezar a utilizarla.
    cd UAO-Neumonia
    ```
 
-3. Cree el entorno determinista desde `pyproject.toml` + `uv.lock`:
+3. Cree el entorno determinista desde `pyproject.toml` + `uv.lock` e instale los
+   hooks:
 
    ```bash
-   uv sync
+   make dev          # equivalente a: uv sync + uv run pre-commit install
    ```
 
-4. Copie el modelo entrenado `WilhemNet_86.h5` en la raíz del proyecto (no se versiona
-   por peso; lo comparte el equipo por unidad externa).
+4. Copie el modelo entrenado `WilhemNet_86.h5` a la raíz del proyecto (pesa
+   ~112 MB y **no se versiona**; lo comparte el equipo por unidad externa).
 
 5. Verifique que el entorno está sano:
 
    ```bash
-   uv run python verify_pipeline.py
+   make check        # lint + formato + recepción (7 checks) + pruebas
    ```
 
-> Nota: en macOS Intel TensorFlow no tiene rueda oficial y vuela fuera del entorno
-> local. El modelo se carga de forma diferida (patrón TF-lazy) y TensorFlow real solo
-> entra en juego dentro de Docker/CI.
+> Nota: en macOS Intel TensorFlow no tiene rueda oficial y queda fuera del entorno
+> local. El modelo se carga de forma diferida (patrón **TF-lazy**) y TensorFlow real
+> solo entra en juego dentro de Docker/CI.
 
-Uso de la Interfaz Gráfica:
+## 🖥️ Uso
 
-> La interfaz se rehace en `src/views/` sobre el `Integrator` (decisión Tkinter vs
-> Streamlit pendiente del equipo). El flujo de la UI legada (cédula, 'Cargar Imagen',
-> 'Predecir', 'Guardar' CSV, 'PDF', 'Borrar') es el contrato funcional que la nueva
-> vista debe replicar.
+La interfaz se rehace en `src/views/` sobre el `Integrator` (decisión Tkinter vs
+Streamlit pendiente del equipo). El flujo de la UI legada es el **contrato
+funcional** que la nueva vista debe replicar: cédula del paciente → *'Cargar
+Imagen'* → *'Predecir'* (clase + probabilidades + preview) → *'Guardar' CSV* →
+*'PDF'* → *'Borrar'*.
 
----
+Mientras la vista llega, el pipeline se recibe por consola:
 
-## Arquitectura (MVC)
+```bash
+make verify        # 7 checks: lectura DICOM/JPG, preprocessing, integrador, errores presupuesto…
+```
+
+## 🏗️ Arquitectura (MVC)
+
+[**Diagrama interactivo de arquitectura**](docs/arquitectura.html) — generado con
+[Archify](https://github.com/tt-a1i/archify) a partir del código real
+(fuente versionada: [`docs/arquitectura.json`](docs/arquitectura.json)).
 
 ```text
 src/
@@ -93,31 +137,79 @@ src/
 Reglas MVC (detalle en [`CONSTITUTION.md`](CONSTITUTION.md) §5):
 
 - La vista NUNCA importa `tensorflow`/`cv2`/`pydicom`: solo habla con `Integrator`.
-- Solo `load_model.py` conoce TensorFlow y lo importa de forma diferida (*lazy*).
+- Solo `load_model.py` (y `grad_cam.py` bajo demanda) conocen TensorFlow, con imports
+  diferidos (*lazy*).
 - El modelo entra por inyección: producción = Keras real; pruebas = `FakeModel`
   (dobles en `test/conftest.py`) — así los 120 tests AAA corren sin TF en local.
 
----
+## ✅ Calidad
 
-## Acerca del Modelo
+```bash
+make help         # lista todos los objetivos
+make dev          # entorno + hooks de pre-commit
+make lint         # Ruff (lint)
+make format       # Ruff (formato)
+make verify       # recepción del entorno (7 checks de verify_pipeline.py)
+make test         # pytest (9 AAA del iniciador · objetivo del equipo: 120)
+make check        # lint + formato + recepción + pruebas — verde ANTES de push
+```
 
-La red neuronal convolucional implementada (CNN) es basada en el modelo implementado por F. Pasa, V.Golkov, F. Pfeifer, D. Cremers & D. Pfeifer
-en su artículo Efcient Deep Network Architectures for Fast Chest X-Ray Tuberculosis Screening and Visualization.
+- `pre-commit` ejecuta higiene de archivos + Ruff + `uv-lock` en cada commit
+  (`--no-verify` está prohibido salvo causa documentada).
+- La CI replica `make check`(`.github/workflows/ci.yml`) en cada push/PR hacia
+  `main` y `develop`.
 
-Está compuesta por 5 bloques convolucionales, cada uno contiene 3 convoluciones; dos secuenciales y una conexión 'skip' que evita el desvanecimiento del gradiente a medida que se avanza en profundidad.
-Con 16, 32, 48, 64 y 80 filtros de 3x3 para cada bloque respectivamente.
+## 🧠 Acerca del modelo
 
-Después de cada bloque convolucional se encuentra una capa de max pooling y después de la última una capa de Average Pooling seguida por tres capas fully-connected (Dense) de 1024, 1024 y 3 neuronas respectivamente.
+La red neuronal convolucional implementada (CNN) está basada en el modelo de
+F. Pasa, V. Golkov, F. Pfeifer, D. Cremers y D. Pfeifer en su artículo
+*Efficient Deep Network Architectures for Fast Chest X-Ray Tuberculosis
+Screening and Visualization*.
 
-Para regularizar el modelo utilizamos 3 capas de Dropout al 20%; dos en los bloques 4 y 5 conv y otra después de la 1ra capa Dense.
+Está compuesta por **5 bloques convolucionales**, cada uno con 3 convoluciones: dos
+secuenciales y una conexión *skip* que evita el desvanecimiento del gradiente a
+medida que se avanza en profundidad. Con 16, 32, 48, 64 y 80 filtros de 3x3 para
+cada bloque respectivamente.
 
-## Acerca de Grad-CAM
+Después de cada bloque convolucional hay una capa de max pooling y, después de la
+última, una capa de Average Pooling seguida por tres capas *fully-connected*
+(Dense) de 1024, 1024 y 3 neuronas respectivamente.
 
-Es una técnica utilizada para resaltar las regiones de una imagen que son importantes para la clasificación. Un mapeo de activaciones de clase para una categoría en particular indica las regiones de imagen relevantes utilizadas por la CNN para identificar esa categoría.
+Para regularizar el modelo se usan 3 capas de Dropout al 20%: dos en los bloques
+4 y 5 conv, y otra después de la primera capa Dense.
 
-Grad-CAM realiza el cálculo del gradiente de la salida correspondiente a la clase a visualizar con respecto a las neuronas de una cierta capa de la CNN. Esto permite tener información de la importancia de cada neurona en el proceso de decisión de esa clase en particular. Una vez obtenidos estos pesos, se realiza una combinación lineal entre el mapa de activaciones de la capa y los pesos, de esta manera, se captura la importancia del mapa de activaciones para la clase en particular y se ve reflejado en la imagen de entrada como un mapa de calor con intensidades más altas en aquellas regiones relevantes para la red con las que clasificó la imagen en cierta categoría.
+## 🔥 Acerca de Grad-CAM
 
-## Proyecto original realizado por:
+Es una técnica para resaltar las regiones de la imagen importantes para la
+clasificación. Un mapeo de activaciones de clase para una categoría en particular
+indica las regiones de imagen relevantes utilizadas por la CNN para identificar
+esa categoría.
 
-Isabella Torres Revelo - https://github.com/isa-tr
-Nicolas Diaz Salazar - https://github.com/nicolasdiazsalazar
+Grad-CAM calcula el gradiente de la salida correspondiente a la clase a visualizar
+con respecto a las neuronas de una capa de la CNN, lo que da la importancia de cada
+neurona en el proceso de decisión de esa clase. Con esos pesos se combina linealmente
+el mapa de activaciones de la capa y se refleja sobre la imagen de entrada como un
+mapa de calor con intensidades más altas en las regiones relevantes.
+
+## 🤝 Contribución
+
+Lee la [guía de contribución](CONTRIBUTING.md) (entorno, Gitflow, estándares y
+commits) y el [código de conducta](CODE_OF_CONDUCT.md). Destaca el flujo:
+
+- ramas `feature/<modulo>` → PR hacia `develop` con la
+  [plantilla de PR](.github/pull_request_template.md);
+- el **code reviewer** — Luis Fernando Meza (`@luisfermezaramrez-stack`) — es la única persona que revisa, aprueba y hace
+  merge; **nadie se auto-aprueba**;
+- cada integrante reclama su archivo del
+  [reparto de tests](test/README.md) (15+30+25+10+15+9+16 = **120**) y
+  **sustenta lo que escribe**.
+
+## 📄 Licencia y créditos
+
+Este fork académico se distribuye bajo [Licencia MIT](LICENSE).
+
+- **Iniciador del fork:** Juan Camilo Perez — port de infraestructura (MVC, tests,
+  CI, estándar del equipo).
+- **Proyecto original:** Isabella Torres Revelo · Nicolas Diaz Salazar
+  (taller dalquinones) — modelo, dataset y UI legada.
+- Modelo base: F. Pasa et al. — *Efficient Deep Network Architectures…*

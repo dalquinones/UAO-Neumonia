@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: "📘 Constitución del proyecto"
+    url: "https://github.com/JuanC0319/UAO-Neumonia/blob/main/CONSTITUTION.md"
+    about: "Stack, decisiones de arquitectura, convenciones y flujo de trabajo."
+  - name: "🤝 Guía de contribución"
+    url: "https://github.com/JuanC0319/UAO-Neumonia/blob/main/CONTRIBUTING.md"
+    about: "Flujo de ramas, Conventional Commits y proceso de Pull Requests."
+  - name: "📄 Código de conducta"
+    url: "https://github.com/JuanC0319/UAO-Neumonia/blob/main/CODE_OF_CONDUCT.md"
+    about: "Normas de convivencia del proyecto."
