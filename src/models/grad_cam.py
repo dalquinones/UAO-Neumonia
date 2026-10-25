@@ -9,12 +9,13 @@ Pipeline: gradientes de la clase ganadora respecto a la última conv
 En TF2 los gradientes se calculan con tf.GradientTape (el monolito
 usaba K.gradients, API de TF1 eliminada — bug corregido del refactor).
 """
+
 import cv2
 import numpy as np
 
 from src.models.load_model import CONV_LAYER_NAME  # constante compartida
 
-DEFAULT_ALPHA = 0.4                                 # peso del mapa en la mezcla
+DEFAULT_ALPHA = 0.4  # peso del mapa en la mezcla
 
 
 def make_gradcam_heatmap(modelo, tensor, class_index=None):
@@ -47,19 +48,20 @@ def make_gradcam_heatmap(modelo, tensor, class_index=None):
     with tf.GradientTape() as tape:
         conv_output, predictions = grad_model(tensor)
         indice = int(np.argmax(predictions[0])) if class_index is None else class_index
-        loss = predictions[:, indice]                     # "qué tan segura es la clase"
-    grads = tape.gradient(loss, conv_output)              # dClase / dActivaciones
-    pooled_grads = tf.reduce_mean(grads, axis=(0, 1, 2))   # ① importancia por canal
+        loss = predictions[:, indice]  # "qué tan segura es la clase"
+    grads = tape.gradient(loss, conv_output)  # dClase / dActivaciones
+    pooled_grads = tf.reduce_mean(grads, axis=(0, 1, 2))  # ① importancia por canal
     mapa = conv_output[0] @ pooled_grads[..., tf.newaxis]  # ② activaciones·importancia
-    mapa = tf.maximum(mapa, 0.0)                            # ③ ReLU: solo aporta lo que SUMA
+    mapa = tf.maximum(mapa, 0.0)  # ③ ReLU: solo aporta lo que SUMA
     maximo = tf.math.reduce_max(mapa)
-    if tf.equal(maximo, 0.0):                               # caso borde: efecto nulo
+    if tf.equal(maximo, 0.0):  # caso borde: efecto nulo
         return tf.zeros_like(mapa).numpy()
-    return (mapa / maximo).numpy()                          # normalizado a [0, 1].
+    return (mapa / maximo).numpy()  # normalizado a [0, 1].
 
 
-def overlay_heatmap(heatmap: np.ndarray, array: np.ndarray,
-                    alpha: float = DEFAULT_ALPHA) -> np.ndarray:
+def overlay_heatmap(
+    heatmap: np.ndarray, array: np.ndarray, alpha: float = DEFAULT_ALPHA
+) -> np.ndarray:
     """Compone el mapa semitransparente sobre la imagen original.
 
     Args:
@@ -80,7 +82,7 @@ def overlay_heatmap(heatmap: np.ndarray, array: np.ndarray,
     if not 0.0 <= alpha <= 1.0:
         raise ValueError(f"alpha debe estar en [0, 1]; recibí {alpha}")
 
-    calor = np.uint8(255.0 * heatmap)                       # 0-255 para OpenCV
+    calor = np.uint8(255.0 * heatmap)  # 0-255 para OpenCV
     calor = cv2.resize(calor, (array.shape[1], array.shape[0]))
-    colores = cv2.applyColorMap(calor, cv2.COLORMAP_JET)    # azul → rojo
+    colores = cv2.applyColorMap(calor, cv2.COLORMAP_JET)  # azul → rojo
     return cv2.addWeighted(array, 1.0 - alpha, colores, alpha, 0)

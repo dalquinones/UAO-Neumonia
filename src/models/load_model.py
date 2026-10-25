@@ -8,6 +8,7 @@ Este es el ÚNICO módulo del proyecto que conoce TensorFlow, y su
 import es diferido (lazy): hasta que esta función se ejecute con un
 archivo real, nada (tests, CI, Docker CPU) carga TF.
 """
+
 import os
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -17,8 +18,8 @@ if TYPE_CHECKING:
     # importa TF aquí — la carga real sigue diferida (lazy) dentro de la función.
     import tensorflow as tf
 
-CONV_LAYER_NAME = "conv10_thisone"    # capa base de los mapas Grad-CAM
-OUTPUT_CLASSES = 3                    # bacteriana / normal / viral
+CONV_LAYER_NAME = "conv10_thisone"  # capa base de los mapas Grad-CAM
+OUTPUT_CLASSES = 3  # bacteriana / normal / viral
 DEFAULT_MODEL_PATH = "WilhemNet_86.h5"
 
 

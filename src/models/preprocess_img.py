@@ -6,12 +6,13 @@ en el tensor exacto que espera la red: (1, 512, 512, 1) flotante en [0, 1].
 El orden y los parámetros replican el pipeline de ENTRENAMIENTO del modelo:
 cambiarlos aquí desincroniza la inferencia con lo que la red aprendió.
 """
+
 import cv2
 import numpy as np
 
-TARGET_SIZE = (512, 512)          # tamaño de entrada que exige la topología
-CLAHE_CLIP_LIMIT = 2.0            # límite de realce de contraste local
-CLAHE_TILE_GRID = (4, 4)          # grilla de regiones del histograma adaptativo
+TARGET_SIZE = (512, 512)  # tamaño de entrada que exige la topología
+CLAHE_CLIP_LIMIT = 2.0  # límite de realce de contraste local
+CLAHE_TILE_GRID = (4, 4)  # grilla de regiones del histograma adaptativo
 
 
 def preprocess(array: np.ndarray) -> np.ndarray:

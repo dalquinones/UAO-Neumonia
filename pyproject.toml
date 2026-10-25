@@ -22,5 +22,9 @@ pythonpath = ["."]
 dev = [
     "pytest>=9.1.1",
     "pytest-mock>=3.17.0",
+    "pre-commit>=4.3.0",
     "ruff>=0.17.1",
 ]
+
+[tool.ruff]
+line-length = 100

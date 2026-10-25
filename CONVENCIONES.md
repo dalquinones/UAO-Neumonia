@@ -24,7 +24,7 @@
 1. Commits convencionales: `feat | fix | test | docs | refactor | chore`.
 2. Cada módulo en su rama: `feature/<nombre-modulo>`.
 3. PR hacia `feature/refactor-mvc` usando la plantilla (`.github/PULL_REQUEST_TEMPLATE.md`).
-4. Revisión: Juan revisa y hace merge (o pide cambios en el PR).
+4. Revisión: el **code reviewer** del equipo revisa y hace merge (o pide cambios en el PR) — es la única persona que aprueba PRs; el propietario del fork NO se autoaprueba.
 5. Al cerrar todos los módulos: un único PR `feature/refactor-mvc` → `develop`.
 6. Después de cada `git pull`: correr `uv sync` (el `uv.lock` manda; nunca pip).
 

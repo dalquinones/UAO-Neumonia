@@ -138,3 +138,29 @@ conv_MLP_84.h5
 .venv/
 __pycache__/
 .pytest_cache/
+
+# ── Archify: receipts regenerables (la fuente es docs/arquitectura.json) ──
+docs/arquitectura.finalize.json
+docs/arquitectura.finalize-summary.json
+docs/arquitectura.delivery.json
+docs/arquitectura.browser-check.json
+
+# ── Estándar de proyecto (toolchain y herramientas) ──
+.archify/
+.DS_Store
+.ruff_cache/
+.tgrep/
+.uv/
+node_modules/
+.coverage
+htmlcov/
+
+# ── Secretos (defensa en profundidad) ──
+.env.*
+!.env.example
+*.pem
+*.key
+*.onnx
+*.pt
+*.pth
+*.safetensors

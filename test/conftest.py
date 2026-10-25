@@ -12,6 +12,7 @@ Uso del equipo — la fixture se pide por nombre en el parámetro del test:
 Infraestructura a cargo del INICIADOR del proyecto (no del code reviewer),
 siguiendo el reparto de test/README.md.
 """
+
 from pathlib import Path
 
 import numpy as np
@@ -19,7 +20,7 @@ import pytest
 
 from src.controllers.integrator import Integrator
 
-RAIZ = Path(__file__).resolve().parents[1]      # raíz del proyecto
+RAIZ = Path(__file__).resolve().parents[1]  # raíz del proyecto
 RUTA_DCM = RAIZ / "data" / "normal.dcm"
 RUTA_JPG = RAIZ / "data" / "radiografia.jpg"
 
@@ -71,6 +72,7 @@ class FakeNet:
 
 
 # --------------------------- fixtures (por nombre) ---------------------------
+
 
 @pytest.fixture
 def fake_model() -> FakeModel:

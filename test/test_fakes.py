@@ -5,6 +5,7 @@ FakeNet) y las fixtures de data/ cumplen su contrato. Si estos nueve
 tests están en verde, el equipo de los otros 111 puede confiar
 plenamente en conftest.py.
 """
+
 from pathlib import Path
 
 import numpy as np
