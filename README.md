@@ -155,6 +155,19 @@ El checkpoint `WilhemNet_86.h5` se **monta en runtime**, nunca se hornea en la i
 - El `.dockerignore` excluye `.git`, `.venv`, el `.h5`, `data/`, `odd/`, cachés y
   documentación regenerable, para que el contexto de build sea liviano.
 
+3. Eliminar la instancia cuando ya no se necesite:
+
+   ```bash
+   # parar y borrar el contenedor (si se arrancó con --name uao-neumonia-app)
+   docker rm -f uao-neumonia-app
+
+   # borrar la imagen (rebuildear después con: docker build -t uao-neumonia .)
+   docker rmi uao-neumonia
+
+   # opcional: limpiar cachés de build colgantes
+   docker image prune -f
+   ```
+
 ## 🏗️ Arquitectura (MVC)
 
 [**Diagrama interactivo de arquitectura**](docs/arquitectura.html) — generado con
