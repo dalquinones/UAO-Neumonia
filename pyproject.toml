@@ -26,6 +26,7 @@ dev = [
     "pre-commit>=4.3.0",
     "ruff>=0.17.1",
 ]
+docker = ["tensorflow-cpu==2.20.0"]
 
 [tool.ruff]
 line-length = 100
