@@ -1,0 +1,32 @@
+# ── Git y control de versiones ──
+.git
+.github
+
+# ── Entornos virtuales y cachés locales (no se hornean) ──
+.venv
+.uv
+**/__pycache__
+**/*.py[cod]
+**/.pytest_cache
+**/.ruff_cache
+**/.mypy_cache
+**/.tgrep
+.atl
+
+# ── Artefactos pesados: el checkpoint se MONTA en runtime, no se hornea ──
+*.h5
+WilhemNet_86.h5
+data/
+odd/
+
+# ── Pruebas y documentación regenerable (no necesarias en runtime) ──
+test/
+docs/arquitectura.html
+docs/arquitectura.finalize.json
+docs/arquitectura.finalize-summary.json
+docs/arquitectura.delivery.json
+docs/arquitectura.browser-check.json
+
+# ── Sistema / editor ──
+.DS_Store
+node_modules

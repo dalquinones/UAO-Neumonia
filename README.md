@@ -21,6 +21,7 @@
 - [Stack](#-stack)
 - [Primeros pasos](#-primeros-pasos)
 - [Uso](#-uso)
+- [Docker](#-docker)
 - [Arquitectura (MVC)](#-arquitectura-mvc)
 - [Calidad](#-calidad)
 - [Acerca del modelo](#-acerca-del-modelo)
@@ -42,7 +43,9 @@ revisados por el code reviewer @luisfermezaramrez-stack):
 - ✅ **Vista Streamlit** (`src/views/app.py`) completada: sube imagen, predice
   (`Integrator.analyze`) y muestra el overlay Grad-CAM (`Integrator.explain`),
   con errores amigables y sin importar TensorFlow/OpenCV/pydicom.
-- 🚧 **Pendientes**: Docker (uv, Paso 4), merge a `develop`, reporte PDF.
+- ✅ **Docker** (`Dockerfile` `python:3.13-slim` + `uv`): TensorFlow solo dentro de la
+  imagen y checkpoint montado en runtime — ver sección [Docker](#-docker).
+- 🚧 **Pendientes**: merge a `develop`, reporte PDF.
 
 La **fuente única de verdad** del proyecto es [`CONSTITUTION.md`](CONSTITUTION.md);
 el contrato de trabajo del equipo vive en [`CONVENCIONES.md`](CONVENCIONES.md).
@@ -123,6 +126,34 @@ El pipeline también se recibe por consola:
 ```bash
 make verify        # 7 checks: lectura DICOM/JPG, preprocessing, integrador, errores presupuesto…
 ```
+
+## 🐳 Docker
+
+TensorFlow (CPU) vive **solo dentro de la imagen** (`tensorflow-cpu==2.20.0`, grupo
+`docker` de `pyproject.toml`); en local el proyecto corre sin TF (patrón **TF-lazy**).
+El checkpoint `WilhemNet_86.h5` se **monta en runtime**, nunca se hornea en la imagen.
+
+1. Construir la imagen (`python:3.13-slim` + `uv`; `uv sync --no-dev --group docker`):
+
+   ```bash
+   docker build -t uao-neumonia .
+   ```
+
+2. Ejecutar la app con el checkpoint montado y el puerto expuesto:
+
+   ```bash
+   docker run --rm -p 8501:8501 \
+     -v "$(pwd)/WilhemNet_86.h5:/app/WilhemNet_86.h5" \
+     -e MODEL_PATH=/app/WilhemNet_86.h5 \
+     uao-neumonia
+   ```
+
+   Luego abrí `http://localhost:8501`.
+
+- `MODEL_PATH` está fijado por defecto a `/app/WilhemNet_86.h5` en la imagen; si montás
+  el checkpoint en otra ruta, pasá `-e MODEL_PATH=/ruta/del/checkpoint.h5`.
+- El `.dockerignore` excluye `.git`, `.venv`, el `.h5`, `data/`, `odd/`, cachés y
+  documentación regenerable, para que el contexto de build sea liviano.
 
 ## 🏗️ Arquitectura (MVC)
 
