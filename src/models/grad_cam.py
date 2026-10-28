@@ -43,7 +43,12 @@ def make_gradcam_heatmap(modelo, tensor, class_index=None):
         ) from exc
 
     # subgrafo: entrada → [activaciones conv, salida de clases]
-    grad_model = tf.keras.Model(modelo.inputs, [conv_layer.output, modelo.output])
+    # Keras 3 (cargando un .h5 de Keras 2) puede exponer `modelo.output` como lista
+    # de un solo tensor; se normaliza para que la salida del subgrafo sea un tensor.
+    salida_modelo = modelo.output
+    if isinstance(salida_modelo, (list, tuple)):
+        salida_modelo = salida_modelo[0]
+    grad_model = tf.keras.Model(modelo.inputs, [conv_layer.output, salida_modelo])
 
     with tf.GradientTape() as tape:
         conv_output, predictions = grad_model(tensor)

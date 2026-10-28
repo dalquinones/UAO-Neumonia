@@ -43,7 +43,10 @@ def load_model(path: str | None = None) -> "tf.keras.Model":
 
     import tensorflow as tf  # lazy: solo si hay archivo real que abrir
 
-    modelo = tf.keras.models.load_model(str(ruta))
+    # compile=False: el checkpoint (2022, Keras 2) guarda `reduction='auto'` en la
+    # loss, valor que Keras 3 (TF 2.16+) rechaza. Para inferencia solo se cargan
+    # arquitectura + pesos; la config de entrenamiento no se necesita.
+    modelo = tf.keras.models.load_model(str(ruta), compile=False)
     _validate_architecture(modelo)
     return modelo
 

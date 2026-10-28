@@ -124,7 +124,7 @@ def test_ruta_explicita_prevalece_sobre_variable_de_entorno(
     modelo = load_model(str(ruta))
 
     # Assert — se carga solo la ruta explícita y se entrega el mismo modelo validado.
-    tensorflow_simulado.assert_called_once_with(str(ruta))
+    tensorflow_simulado.assert_called_once_with(str(ruta), compile=False)
     assert modelo is fake_net
 
 
@@ -138,7 +138,7 @@ def test_sin_ruta_utiliza_model_path_del_entorno(monkeypatch, tensorflow_simulad
     load_model()
 
     # Assert — se utiliza exactamente una vez la ruta del entorno.
-    tensorflow_simulado.assert_called_once_with(str(ruta))
+    tensorflow_simulado.assert_called_once_with(str(ruta), compile=False)
 
 
 def test_sin_ruta_ni_variable_utiliza_checkpoint_predeterminado(monkeypatch, tensorflow_simulado):
@@ -150,7 +150,7 @@ def test_sin_ruta_ni_variable_utiliza_checkpoint_predeterminado(monkeypatch, ten
     load_model()
 
     # Assert — se solicita exactamente una vez el checkpoint esperado.
-    tensorflow_simulado.assert_called_once_with(str(Path("WilhemNet_86.h5")))
+    tensorflow_simulado.assert_called_once_with(str(Path("WilhemNet_86.h5")), compile=False)
 
 
 def test_carga_propaga_error_de_checkpoint_corrupto(monkeypatch, tensorflow_simulado):
