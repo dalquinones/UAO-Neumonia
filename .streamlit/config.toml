@@ -1,0 +1,8 @@
+# Tema corporativo de la vista Streamlit (colores y tipografía).
+[theme]
+base = "light"
+primaryColor = "#1f4e79"        # azul corporativo
+backgroundColor = "#E8FDFD"     # cian muy claro
+secondaryBackgroundColor = "#ffffff"
+textColor = "#16283c"
+font = "sans serif"
