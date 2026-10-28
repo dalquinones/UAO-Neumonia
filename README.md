@@ -39,8 +39,9 @@ revisados por el code reviewer @luisfermezaramrez-stack):
   pytest, Ruff y `py_compile` en verde.
 - ✅ **Estandarización**: `uv` único, `Makefile`, pre-commit, Ruff, CI, licencia
   MIT y [arquitectura versionada con Archify](docs/arquitectura.html).
-- 🚧 **Vista** (`src/views/`) a cargo de un integrante (decisión Tkinter vs
-  Streamlit pendiente del equipo).
+- ✅ **Vista Streamlit** (`src/views/app.py`) completada: sube imagen, predice
+  (`Integrator.analyze`) y muestra el overlay Grad-CAM (`Integrator.explain`),
+  con errores amigables y sin importar TensorFlow/OpenCV/pydicom.
 - 🚧 **Pendientes**: Docker (uv, Paso 4), merge a `develop`, reporte PDF.
 
 La **fuente única de verdad** del proyecto es [`CONSTITUTION.md`](CONSTITUTION.md);
@@ -104,13 +105,20 @@ el contrato de trabajo del equipo vive en [`CONVENCIONES.md`](CONVENCIONES.md).
 
 ## 🖥️ Uso
 
-La interfaz se rehace en `src/views/` sobre el `Integrator` (decisión Tkinter vs
-Streamlit pendiente del equipo). El flujo de la UI legada es el **contrato
-funcional** que la nueva vista debe replicar: cédula del paciente → *'Cargar
-Imagen'* → *'Predecir'* (clase + probabilidades + preview) → *'Guardar' CSV* →
-*'PDF'* → *'Borrar'*.
+La interfaz gráfica está en `src/views/app.py` (Streamlit) y habla únicamente con
+el `Integrator` — nunca importa `tensorflow`/`cv2`/`pydicom`:
 
-Mientras la vista llega, el pipeline se recibe por consola:
+```bash
+uv run streamlit run src/views/app.py
+```
+
+El flujo de la UI: subir una radiografía (`.dcm`, `.jpg`, `.jpeg` o `.png`) →
+*'Analizar'* → se muestran la clase + probabilidades + preview y el overlay
+Grad-CAM. Los errores (archivo inexistente o corrupto, formato no soportado) se
+informan de forma amigable. La persistencia CSV/PDF del monolito queda **fuera del
+MVP** (no-propósito en `CONSTITUTION.md` §1).
+
+El pipeline también se recibe por consola:
 
 ```bash
 make verify        # 7 checks: lectura DICOM/JPG, preprocessing, integrador, errores presupuesto…
@@ -131,7 +139,8 @@ src/
 │   └── grad_cam.py        #   heatmap Grad-CAM + overlay (explicabilidad)
 ├── controllers/
 │   └── integrator.py      # fachada única con modelo INYECTADO (DI)
-└── views/                 # interfaz gráfica (decisión Tkinter vs Streamlit en curso)
+└── views/
+    └── app.py             # interfaz Streamlit (cáscara fina; solo habla con Integrator)
 ```
 
 Reglas MVC (detalle en [`CONSTITUTION.md`](CONSTITUTION.md) §5):

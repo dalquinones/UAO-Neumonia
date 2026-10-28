@@ -21,7 +21,7 @@
 | **Autoría** | Equipo del taller — iniciador del proyecto: Juan Camilo Perez — kamilo199603@gmail.com |
 | **Licencia** | [MIT](LICENSE) (fork académico; © 2026 Juan Camilo Perez) |
 | **Rama de integración** | `develop` (Gitflow) |
-| **Estado** | Refactor MVC completo + estandar aplicado (Makefile, pre-commit, CI, Archify) — vista/Docker/PDF pendientes 🚧 |
+| **Estado** | Refactor MVC completo + estándar aplicado (Makefile, pre-commit, CI, Archify) + vista Streamlit — Docker/PDF pendientes 🚧 |
 
 ## 1. Propósito y no-propósito
 
@@ -43,8 +43,8 @@ TensorFlow local y ejecutable en Mac Intel, Windows, Linux, Docker y CI.
 
 Migración MVC del monolito `detector_neumonia.py` → `src/models` + `src/controllers`
 + `src/views`; **120 tests pytest** (AAA); Docker CPU basado en `uv`; interfaz gráfica
-(Tkinter o Streamlit, según decisión del equipo); CI/CD con GitHub Actions y Gitflow
-con PRs y plantilla; reporte PDF final.
+Streamlit (decisión del equipo); CI/CD con GitHub Actions y Gitflow con PRs y
+plantilla; reporte PDF final.
 
 ### Fuera del alcance (por ahora)
 
@@ -170,6 +170,7 @@ es la puerta de entrada; la CI replica esa misma paridad en GitHub.
 | 2026-10-24 | CI `ci.yml` (pre-commit + recepción + pytest) y gobernanza GitHub (issue templates, labels, Dependabot) | Paridad local↔CI exigida por el estándar; la rúbrica pide CI/CD gobernado |
 | 2026-10-24 | Diagrama de arquitectura con Archify: `docs/arquitectura.json` (fuente) + `docs/arquitectura.html` | Documentación viva del MVC, respaldada por líneas del código (`meta.repository` pin `bf3eaf5`) |
 | 2026-10-24 | Code reviewer designado: **Luis Fernando Meza** (`@luisfermezaramrez-stack`) | Cierra el rol pendiente de §8; los PRs se dirigen con @mention real (notificaciones de GitHub) |
+| 2026-10-27 | Vista **Streamlit** (`src/views/app.py`) + `Integrator.explain()` (overlay Grad-CAM → PIL RGB) + fix del contrato 2D de Grad-CAM | Vista pura (§5): la UI solo habla con `Integrator`; explicabilidad reutilizable sin que la vista importe cv2/tf/pydicom |
 
 ## 10. Roadmap y tareas pendientes
 
@@ -178,8 +179,8 @@ es la puerta de entrada; la CI replica esa misma paridad en GitHub.
 - [x] **Paso 3 (base):** `pythonpath = ["."]` + `test/conftest.py` + `test/test_fakes.py`
       (9 pruebas AAA del iniciador) — pytest en verde (9 passed, 2026-10-24)
 - [ ] **Paso 3 (equipo):** reparto de los 111 tests restantes vía PRs (claims en tabla)
-- [ ] **Paso 3b:** decidir vista (Tkinter vs Streamlit) y construirla con hook
-      `Integrator.explain()`
+- [x] **Paso 3b:** decidir vista (Streamlit) y construirla con hook
+      `Integrator.explain()` — `src/views/app.py` (2026-10-27)
 - [x] **Cierre del refactor:** `git rm detector_neumonia.py` + README migrado a la
       arquitectura MVC + `requirements.txt` retirado (2026-10-24)
 - [x] **Estandar de proyecto aplicado:** Makefile + pre-commit + LICENSE MIT +
