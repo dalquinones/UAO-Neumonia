@@ -28,6 +28,10 @@ COPY . .
 # y se referencia vía MODEL_PATH (sobrescribible con -e en el arranque).
 ENV MODEL_PATH=/app/WilhemNet_86.h5
 
+# Proyecto en "modo virtual" (sin paquete): la raíz /app debe estar en el path
+# para que `from src.controllers...` funcione (Streamlit agrega solo el dir del script).
+ENV PYTHONPATH=/app
+
 EXPOSE 8501
 
 CMD ["uv", "run", "--no-sync", "streamlit", "run", "src/views/app.py"]
