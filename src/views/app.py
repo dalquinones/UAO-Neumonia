@@ -78,9 +78,87 @@ def _guardar_subida(archivo) -> str:
         return temporal.name
 
 
+_CSS_CORPORATIVO = """
+<style>
+    /* Fondo corporativo (cian claro) */
+    [data-testid="stAppViewContainer"] {
+        background: #E8FDFD;
+    }
+    [data-testid="stHeader"] {
+        background: transparent;
+    }
+
+    /* Contenido al 60% del ancho y centrado */
+    [data-testid="stAppViewContainer"] .block-container {
+        max-width: 60%;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    /* Título principal: azul corporativo con línea de acento */
+    [data-testid="stAppViewContainer"] h1 {
+        color: #123a5c;
+        font-weight: 700;
+        letter-spacing: -0.5px;
+        border-bottom: 3px solid #1f4e79;
+        padding-bottom: 0.5rem;
+    }
+
+    /* Subtítulos de sección */
+    [data-testid="stAppViewContainer"] h3 {
+        color: #1f4e79;
+        font-weight: 600;
+    }
+
+    /* Botón primario con relieve y hover */
+    .stButton > button[kind="primary"] {
+        background-color: #1f4e79;
+        border: none;
+        border-radius: 8px;
+        box-shadow: 0 2px 6px rgba(31, 78, 121, 0.35);
+        transition: box-shadow 0.15s ease, background-color 0.15s ease;
+    }
+    .stButton > button[kind="primary"]:hover {
+        background-color: #2a5f8f;
+        box-shadow: 0 4px 12px rgba(31, 78, 121, 0.45);
+    }
+
+    /* Tarjetas: contenedores con borde */
+    [data-testid="stVerticalBlockBorderWrapper"] {
+        background: #ffffff;
+        border: 1px solid #dde4ee;
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(18, 58, 92, 0.06);
+    }
+
+    /* Métricas como tarjetas */
+    [data-testid="stMetric"] {
+        background: #ffffff;
+        border: 1px solid #dde4ee;
+        border-radius: 10px;
+        padding: 1rem 1.25rem;
+        box-shadow: 0 2px 8px rgba(18, 58, 92, 0.05);
+    }
+
+    /* Zona de subida con borde de acento */
+    [data-testid="stFileUploaderDropzone"] {
+        border: 2px dashed #1f4e79;
+        border-radius: 12px;
+        background-color: #f8fafc;
+    }
+</style>
+"""
+
+
+def _inyectar_estilos() -> None:
+    """Aplica el estilo corporativo (colores, tarjetas y relieve)."""
+    st.markdown(_CSS_CORPORATIVO, unsafe_allow_html=True)
+
+
 def main() -> None:
     """Punto de entrada de la interfaz Streamlit."""
-    st.set_page_config(page_title="Detector de neumonía", page_icon="🫁")
+    st.set_page_config(page_title="Detector de neumonía", page_icon="🫁", layout="wide")
+    _inyectar_estilos()
     st.title("🫁 Detector de neumonía")
     st.caption(
         "Clasificación de radiografías de tórax (bacteriana · normal · viral) "
@@ -113,18 +191,21 @@ def main() -> None:
             st.error(resultado["error"])
             return
 
-        columna_preview, columna_overlay = st.columns(2)
-        with columna_preview:
-            st.subheader("Previsualización")
-            st.image(resultado["resultado"]["preview"])
-        with columna_overlay:
-            st.subheader("Grad-CAM")
-            st.image(resultado["overlay"])
+        with st.container(border=True):
+            st.subheader("Análisis visual")
+            columna_preview, columna_overlay = st.columns(2)
+            with columna_preview:
+                st.markdown("**Previsualización**")
+                st.image(resultado["resultado"]["preview"])
+            with columna_overlay:
+                st.markdown("**Grad-CAM**")
+                st.image(resultado["overlay"])
 
-        st.subheader("Resultado")
-        st.metric("Clase", resultado["resultado"]["label"])
-        for texto in formatear_probabilidades(resultado["resultado"]["probabilities"]):
-            st.write(texto)
+        with st.container(border=True):
+            st.subheader("Resultado")
+            st.metric("Clase", resultado["resultado"]["label"])
+            for texto in formatear_probabilidades(resultado["resultado"]["probabilities"]):
+                st.write(texto)
 
 
 if __name__ == "__main__":
