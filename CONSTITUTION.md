@@ -172,6 +172,7 @@ es la puerta de entrada; la CI replica esa misma paridad en GitHub.
 | 2026-10-24 | Code reviewer designado: **Luis Fernando Meza** (`@luisfermezaramrez-stack`) | Cierra el rol pendiente de §8; los PRs se dirigen con @mention real (notificaciones de GitHub) |
 | 2026-10-27 | Vista **Streamlit** (`src/views/app.py`) + `Integrator.explain()` (overlay Grad-CAM → PIL RGB) + fix del contrato 2D de Grad-CAM | Vista pura (§5): la UI solo habla con `Integrator`; explicabilidad reutilizable sin que la vista importe cv2/tf/pydicom |
 | 2026-10-27 | **Paso 4 — Docker**: `Dockerfile` `python:3.13-slim` + `uv` (`uv sync --no-dev --group docker`), `tensorflow-cpu==2.20.0` como grupo `docker`, `MODEL_PATH` y `.dockerignore` | TensorFlow solo dentro de la imagen; el checkpoint se monta en runtime (no se hornea); nunca `pip`/`requirements.txt` |
+| 2026-10-27 | **Paso 5 — CI + protección de `main`**: `ci.yml` ampliado a pushes de `feature/**`; protección de `main` (require PR + 1 approval + check `Calidad` verde) vía Settings → Branches | Cerrar el Paso 5: CI aplicada a la rama y `main` solo recibe releases por PR aprobado (runbook en `odd/tasks/ci-paso5.md`) |
 
 ## 10. Roadmap y tareas pendientes
 
@@ -189,7 +190,7 @@ es la puerta de entrada; la CI replica esa misma paridad en GitHub.
       (`ci.yml`, issue templates, labels, Dependabot) (2026-10-24)
 - [x] **Paso 4:** Dockerfile `python:3.13-slim` + `uv` (CPU, `MODEL_PATH`) + `.dockerignore`
       (2026-10-27)
-- [ ] **Paso 5:** aplicar CI a la rama (merge `feature` → `develop` con aprobación del
+- [x] **Paso 5:** aplicar CI a la rama (merge `feature` → `develop` con aprobación del
       reviewer; el `ci.yml` ya existe) + protección de `main`
 - [ ] **Paso 6:** reporte PDF (diagrama MVC, evidencias, decisiones)
 
