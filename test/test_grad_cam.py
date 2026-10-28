@@ -106,6 +106,21 @@ def test_gradcam_utiliza_conv10_thisone_y_transmite_tensor_al_submodelo(gradcam_
     escenario.submodelo.assert_called_once_with(escenario.tensor)
 
 
+def test_gradcam_normaliza_salida_cuando_modelo_output_es_lista(gradcam_simulado):
+    # Arrange — Keras 3 cargando un .h5 de Keras 2 expone modelo.output como lista.
+    escenario = gradcam_simulado
+    salida = escenario.modelo.output
+    escenario.modelo.output = [salida]
+
+    # Act — generar el mapa con la salida en formato lista.
+    make_gradcam_heatmap(escenario.modelo, escenario.tensor)
+
+    # Assert — el subgrafo usa la salida desempaquetada, no la lista.
+    escenario.backend.keras.Model.assert_called_once_with(
+        escenario.modelo.inputs, [escenario.capa.output, salida]
+    )
+
+
 def test_gradcam_informa_capa_ausente_y_conserva_causa(gradcam_simulado):
     # Arrange — simular el error de búsqueda de una capa inexistente.
     escenario = gradcam_simulado
