@@ -1,8 +1,8 @@
 """Pruebas AAA de Grad-CAM con TensorFlow simulado y OpenCV real.
 
-El eje final unitario es un defecto conocido: la salida actual (h, w, 1)
-incumple el contrato documentado (h, w) y no puede superponerse directamente.
-Las pruebas que lo caracterizan no certifican el cumplimiento de ese contrato.
+La salida de make_gradcam_heatmap cumple el contrato documentado (h, w): el
+eje final unitario se elimina con squeeze y el mapa puede superponerse
+directamente con overlay_heatmap.
 """
 
 import builtins
@@ -62,6 +62,7 @@ def gradcam_simulado(monkeypatch):
     modulo.math = SimpleNamespace(reduce_max=np.max)
     modulo.equal = np.equal
     modulo.zeros_like = lambda valor: _tensor(np.zeros_like(valor))
+    modulo.squeeze = lambda valor, axis=None: _tensor(np.squeeze(valor, axis=axis))
     monkeypatch.setitem(sys.modules, "tensorflow", modulo)
     escenario.backend = modulo
     return escenario
@@ -152,15 +153,15 @@ def test_gradcam_pondera_canales_aplica_relu_y_normaliza(gradcam_simulado):
     escenario = gradcam_simulado
     escenario.activaciones = _tensor([[[[-2, 0], [1, 1]], [[2, 1], [0, 3]]]])
     escenario.gradientes = _tensor([[[[0, 1], [2, 3]], [[0, 1], [2, 3]]]])
-    esperado = np.array([[[0], [0.5]], [[2 / 3], [1]]], dtype=np.float32)
+    esperado = np.array([[0, 0.5], [2 / 3, 1]], dtype=np.float32)
 
     # Act — ejecutar la aritmética real del módulo con operaciones NumPy simuladas.
     mapa = make_gradcam_heatmap(escenario.modelo, escenario.tensor)
 
-    # Assert — valores correctos; el eje extra caracteriza un defecto, no el contrato 2D.
+    # Assert — valores correctos y contrato 2D (h, w) cumplido.
     np.testing.assert_allclose(mapa, esperado)
     assert mapa.dtype == np.float32
-    assert mapa.shape == (2, 2, 1)  # Defecto actual: el docstring promete (h, w).
+    assert mapa.shape == (2, 2)
     assert mapa.min() == 0.0
     assert mapa.max() == 1.0
     escenario.backend.reduce_mean.assert_called_once_with(escenario.gradientes, axis=(0, 1, 2))
@@ -191,19 +192,19 @@ def test_gradcam_anula_contribuciones_totalmente_negativas(gradcam_simulado):
     np.testing.assert_array_equal(mapa, np.zeros_like(mapa))
 
 
-def test_superposicion_rechaza_mapa_que_no_es_bidimensional(gradcam_simulado):
-    # Arrange — reproducir el defecto con la salida real, sin quitar su eje unitario.
+def test_superposicion_acepta_mapa_bidimensional_generado_por_gradcam(gradcam_simulado):
+    # Arrange — el mapa de producción ya cumple el contrato 2D y puede componerse.
     escenario = gradcam_simulado
     mapa = make_gradcam_heatmap(escenario.modelo, escenario.tensor)
     imagen = np.zeros((4, 6, 3), dtype=np.uint8)
 
-    # Act — intentar componer directamente ambas funciones de producción.
-    with pytest.raises(ValueError, match=r"mapa debe ser 2D.*ndim=3") as error:
-        overlay_heatmap(mapa, imagen)
+    # Act — componer directamente ambas funciones de producción.
+    resultado = overlay_heatmap(mapa, imagen)
 
-    # Assert — se documenta la incompatibilidad actual, no el cumplimiento del contrato.
-    assert mapa.shape == (2, 2, 1)
-    assert "recibí ndim=3" in str(error.value)
+    # Assert — el mapa es 2D y la superposición ya no lanza error.
+    assert mapa.shape == (2, 2)
+    assert resultado.shape == imagen.shape
+    assert resultado.dtype == np.uint8
 
 
 def test_superposicion_rechaza_imagen_bidimensional():
