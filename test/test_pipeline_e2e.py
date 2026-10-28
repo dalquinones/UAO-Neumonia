@@ -348,7 +348,7 @@ def test_pipeline_carga_modelo_del_entorno_y_analiza_imagen_real(
     resultado = _cargar_y_analizar(ruta_jpg)
 
     # Assert — el modelo cargado y validado es el que realiza la inferencia.
-    escenario.cargador.assert_called_once_with(ruta_checkpoint)
+    escenario.cargador.assert_called_once_with(ruta_checkpoint, compile=False)
     escenario.modelo.predict.assert_called_once()
     _comprobar_tensor(escenario.modelo.ultima_entrada)
     _comprobar_resultado(resultado, "normal", [0.05, 0.90, 0.05])
@@ -368,7 +368,7 @@ def test_pipeline_arquitectura_invalida_bloquea_analisis(
         _cargar_y_analizar(ruta_jpg, ruta_checkpoint)
 
     # Assert — la barrera de arquitectura impide llegar al análisis y a predict.
-    escenario.cargador.assert_called_once_with(ruta_checkpoint)
+    escenario.cargador.assert_called_once_with(ruta_checkpoint, compile=False)
     analisis.assert_not_called()
     escenario.modelo.predict.assert_not_called()
 
@@ -391,7 +391,7 @@ def test_pipeline_error_de_carga_impide_lectura_e_inferencia(
 
     # Assert — se conserva el error y ninguna etapa de análisis comienza.
     assert error.value is causa
-    escenario.cargador.assert_called_once_with(ruta_checkpoint)
+    escenario.cargador.assert_called_once_with(ruta_checkpoint, compile=False)
     analisis.assert_not_called()
     lector.assert_not_called()
     escenario.modelo.predict.assert_not_called()
@@ -432,7 +432,7 @@ def test_pipeline_completo_superpone_overlay_gradcam_bidimensional(
     overlay = _pipeline_con_superposicion(ruta_checkpoint, ruta_jpg, registro)
 
     # Assert — todas las etapas funcionan y el overlay conserva la forma BGR de entrada.
-    escenario.cargador.assert_called_once_with(ruta_checkpoint)
+    escenario.cargador.assert_called_once_with(ruta_checkpoint, compile=False)
     escenario.modelo.predict.assert_called_once()
     _comprobar_resultado(registro.resultado, "normal", [0.05, 0.90, 0.05])
     _comprobar_tensor(escenario.modelo.ultima_entrada)
