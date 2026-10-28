@@ -3,7 +3,7 @@
 Lectores, preprocesamiento y controlador son reales; la inferencia es simulada.
 Dos escenarios del controlador inyectan fallos en CLAHE o predict. Las cinco
 composiciones conectan explícitamente carga o Grad-CAM: analyze no lo hace.
-El defecto (h, w, 1) de Grad-CAM se reproduce, sin corregirlo ni certificar 2D.
+Grad-CAM cumple el contrato 2D (h, w) y la superposición ya no falla.
 """
 
 import sys
@@ -132,6 +132,7 @@ def backend_simulado(monkeypatch, fakemodel_factory, fake_net):
     modulo.math = SimpleNamespace(reduce_max=np.max)
     modulo.equal = np.equal
     modulo.zeros_like = lambda valor: _tensor(np.zeros_like(valor))
+    modulo.squeeze = lambda valor, axis=None: _tensor(np.squeeze(valor, axis=axis))
     monkeypatch.setitem(sys.modules, "tensorflow", modulo)
     escenario.backend = modulo
     return escenario
@@ -406,32 +407,31 @@ def test_pipeline_dicom_transmite_tensor_real_a_gradcam_con_gradientes_nulos(
     # Act — analizar y entregar a Grad-CAM el mismo tensor usado en predict.
     resultado, mapa = _analizar_y_generar_mapa(escenario.modelo, ruta_dcm)
 
-    # Assert — se transmite el tensor por identidad; la forma 3D sigue siendo un defecto.
+    # Assert — se transmite el tensor por identidad; el contrato 2D (h, w) se cumple.
     _comprobar_resultado(resultado, "normal", [0.05, 0.90, 0.05])
     _comprobar_tensor(escenario.modelo.ultima_entrada)
     escenario.modelo.predict.assert_called_once()
     escenario.submodelo.assert_called_once()
     assert escenario.submodelo.call_args.args[0] is escenario.modelo.ultima_entrada
     escenario.modelo.get_layer.assert_called_once_with("conv10_thisone")
-    assert mapa.shape == (2, 2, 1)  # Incumple el contrato documentado (h, w).
+    assert mapa.shape == (2, 2)
     np.testing.assert_array_equal(mapa, np.zeros_like(mapa))
     assert np.isfinite(mapa).all()
     escenario.cargador.assert_not_called()  # La carga no pertenece a analyze.
 
 
-def test_pipeline_completo_reproduce_incompatibilidad_dimensional_de_gradcam(
+def test_pipeline_completo_superpone_overlay_gradcam_bidimensional(
     ruta_jpg, ruta_checkpoint, backend_simulado
 ):
     # Arrange — modelo cargable simulado, imagen real y registro de etapas anteriores.
     escenario = backend_simulado
     registro = SimpleNamespace()
-    esperado = np.array([[[3], [7]], [[11], [15]]], dtype=np.float32) / 15
+    esperado = np.array([[3, 7], [11, 15]], dtype=np.float32) / 15
 
-    # Act — componer carga, análisis, Grad-CAM y overlay sin eliminar el eje final.
-    with pytest.raises(ValueError, match=r"mapa debe ser 2D.*ndim=3") as error:
-        _pipeline_con_superposicion(ruta_checkpoint, ruta_jpg, registro)
+    # Act — componer carga, análisis, Grad-CAM y overlay sobre el contrato 2D.
+    overlay = _pipeline_con_superposicion(ruta_checkpoint, ruta_jpg, registro)
 
-    # Assert — las etapas previas funcionan; el defecto bloquea la superposición directa.
+    # Assert — todas las etapas funcionan y el overlay conserva la forma BGR de entrada.
     escenario.cargador.assert_called_once_with(ruta_checkpoint)
     escenario.modelo.predict.assert_called_once()
     _comprobar_resultado(registro.resultado, "normal", [0.05, 0.90, 0.05])
@@ -440,8 +440,10 @@ def test_pipeline_completo_reproduce_incompatibilidad_dimensional_de_gradcam(
     assert escenario.submodelo.call_args.args[0] is escenario.modelo.ultima_entrada
     escenario.modelo.get_layer.assert_called_once_with("conv10_thisone")
     np.testing.assert_allclose(registro.mapa, esperado)
-    assert registro.mapa.shape == (2, 2, 1)  # Defecto reproducido, no corregido.
+    assert registro.mapa.shape == (2, 2)
     assert registro.mapa.dtype == np.float32
     assert np.isfinite(registro.mapa).all()
     assert 0 <= registro.mapa.min() <= registro.mapa.max() == 1
-    assert "recibí ndim=3" in str(error.value)
+    array, _ = read_image(ruta_jpg)
+    assert overlay.shape == array.shape
+    assert overlay.dtype == np.uint8

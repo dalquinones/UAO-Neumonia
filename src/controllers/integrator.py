@@ -12,8 +12,11 @@ sin TF y cambia de entorno (Mac/CI/Docker) sin tocar código.
 
 from pathlib import Path
 
+import cv2
 import numpy as np
+from PIL import Image
 
+from src.models.grad_cam import make_gradcam_heatmap, overlay_heatmap
 from src.models.preprocess_img import preprocess
 from src.models.read_img import read_dicom, read_image
 
@@ -22,7 +25,7 @@ LABELS = {0: "bacteriana", 1: "normal", 2: "viral"}
 
 
 class Integrator:
-    """Orquesta el pipeline completo: leer → preprocesar → predecir."""
+    """Orquesta el pipeline completo: leer → preprocesar → predecir → explicar."""
 
     def __init__(self, model):
         """Recibe un modelo con interfaz .predict(x) (Keras real o stub)."""
@@ -53,6 +56,41 @@ class Integrator:
             "preview": preview,
         }
 
+    def explain(self, path: str) -> dict:
+        """Análisis completo con explicabilidad Grad-CAM para una imagen.
+
+        Reutiliza lectura, preprocesamiento y predicción de :meth:`analyze` y
+        añade el mapa de calor Grad-CAM compuesto sobre la imagen original,
+        convertido a PIL RGB para que la vista lo pinte sin importar cv2.
+
+        Args:
+            path: ruta del archivo (.dcm, .jpg, .jpeg, .png)
+
+        Returns:
+            dict con:
+                label         -> clase predicha (str)
+                probabilities -> list[float] con las 3 clases
+                preview       -> PIL.Image de la imagen original
+                overlay       -> PIL.Image RGB con el mapa Grad-CAM superpuesto
+
+        Raises:
+            FileNotFoundError: si el archivo no existe o no se lee.
+            ValueError: si el modelo no expone la capa conv de Grad-CAM.
+        """
+        array, preview = self._read_file(path)
+        tensor = preprocess(array)
+        probabilities = np.asarray(self.model.predict(tensor)).reshape(-1)
+        idx = int(np.argmax(probabilities))
+        heatmap = make_gradcam_heatmap(self.model, tensor, class_index=idx)
+        overlay = overlay_heatmap(heatmap, array)
+        overlay_rgb = Image.fromarray(cv2.cvtColor(overlay, cv2.COLOR_BGR2RGB))
+        return {
+            "label": LABELS[idx],
+            "probabilities": [float(p) for p in probabilities],
+            "preview": preview,
+            "overlay": overlay_rgb,
+        }
+
     def _read_file(self, path: str):
         """Elige el lector correcto según la extensión del archivo."""
         p = Path(path)
@@ -61,3 +99,15 @@ class Integrator:
         if p.suffix.lower() == ".dcm":
             return read_dicom(str(p))
         return read_image(str(p))
+
+
+def crear_integrador(path: str | None = None) -> Integrator:
+    """Fábrica de producción: carga el modelo real y lo inyecta en el controlador.
+
+    La carga es diferida (TF-lazy): TensorFlow solo se importa si hay un
+    checkpoint real que abrir. La vista usa esta fábrica para obtener el
+    controlador sin conocer los módulos de la capa modelo.
+    """
+    from src.models.load_model import load_model  # lazy: misma convención
+
+    return Integrator(load_model(path))

@@ -53,6 +53,7 @@ def make_gradcam_heatmap(modelo, tensor, class_index=None):
     pooled_grads = tf.reduce_mean(grads, axis=(0, 1, 2))  # ① importancia por canal
     mapa = conv_output[0] @ pooled_grads[..., tf.newaxis]  # ② activaciones·importancia
     mapa = tf.maximum(mapa, 0.0)  # ③ ReLU: solo aporta lo que SUMA
+    mapa = tf.squeeze(mapa, axis=-1)  # ④ contrato 2D: se elimina el eje unitario final
     maximo = tf.math.reduce_max(mapa)
     if tf.equal(maximo, 0.0):  # caso borde: efecto nulo
         return tf.zeros_like(mapa).numpy()
