@@ -118,9 +118,9 @@ uv run streamlit run src/views/app.py
 El flujo de la UI: ingresar el nombre completo y el número de identificación del
 paciente → subir una radiografía (`.dcm`, `.jpg`, `.jpeg` o `.png`) → *'Analizar'*
 (deshabilitado mientras falten los datos) → se muestran la preview, el overlay
-Grad-CAM y el botón *'Descargar dictamen PDF'* (encabezado
-«Detector de Neumonía», datos del paciente, fecha y hora, probabilidad más alta y
-dictamen médico). Los errores (archivo inexistente o corrupto, formato no soportado)
+Grad-CAM y el botón *'Descargar informe PDF'* (encabezado
+«Detector de Neumonía», datos del paciente, fecha y hora, estudio, puntaje más alto
+del modelo e impresión diagnóstica de apoyo por IA). Los errores (archivo inexistente o corrupto, formato no soportado)
 se informan de forma amigable. La persistencia CSV del monolito queda **fuera del
 MVP** (no-propósito en `CONSTITUTION.md` §1).
 

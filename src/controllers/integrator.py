@@ -96,15 +96,21 @@ class Integrator:
         }
 
     def generate_report(
-        self, patient_name: str, patient_id: str, resultado: dict, timestamp: datetime
+        self,
+        patient_name: str,
+        patient_id: str,
+        resultado: dict,
+        timestamp: datetime,
+        file_extension: str,
     ) -> bytes:
-        """Genera el dictamen PDF a partir del resultado de :meth:`analyze`.
+        """Genera el informe PDF a partir del resultado de :meth:`analyze`.
 
         Args:
             patient_name: nombre completo del paciente.
             patient_id: número de identificación.
             resultado: dict con 'label' y 'probabilities'.
             timestamp: fecha y hora del resultado.
+            file_extension: extensión del archivo analizado (.dcm, .jpg, .jpeg, .png).
 
         Returns:
             bytes del PDF listo para descargar.
@@ -118,6 +124,7 @@ class Integrator:
             resultado["label"],
             resultado["probabilities"],
             timestamp,
+            file_extension,
         )
 
     def _read_file(self, path: str):

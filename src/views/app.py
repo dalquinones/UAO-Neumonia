@@ -3,7 +3,7 @@
 Regla dura (CONSTITUTION.md §5): esta vista NUNCA importa tensorflow/cv2/pydicom.
 Solo habla con la capa controlador (Integrator y su fábrica). La carga del modelo
 es diferida: sin `WilhemNet_86.h5` en la raíz, la app avisa de forma amigable y
-mantiene la interfaz viva. El resultado se puede descargar como dictamen PDF con
+mantiene la interfaz viva. El resultado se puede descargar como informe PDF con
 los datos del paciente (la persistencia CSV queda fuera del MVP).
 
 Ejecutar:
@@ -216,6 +216,7 @@ def main() -> None:
         st.session_state["analisis"] = {
             **resultado,
             "archivo_id": archivo.file_id,
+            "extension": Path(archivo.name).suffix,
             "nombre": nombre.strip(),
             "documento": documento.strip(),
             "fecha": ahora_colombia(),
@@ -227,7 +228,7 @@ def main() -> None:
 
 
 def _mostrar_resultado(integrator: Integrator, analisis: dict) -> None:
-    """Pinta el análisis visual, el resultado y la descarga del dictamen PDF."""
+    """Pinta el análisis visual, el resultado y la descarga del informe PDF."""
     with st.container(border=True):
         st.subheader("Análisis visual")
         columna_preview, columna_overlay = st.columns(2)
@@ -245,10 +246,14 @@ def _mostrar_resultado(integrator: Integrator, analisis: dict) -> None:
             f"{analisis['fecha']:%d/%m/%Y %H:%M:%S}"
         )
         pdf = integrator.generate_report(
-            analisis["nombre"], analisis["documento"], analisis["resultado"], analisis["fecha"]
+            analisis["nombre"],
+            analisis["documento"],
+            analisis["resultado"],
+            analisis["fecha"],
+            analisis["extension"],
         )
         st.download_button(
-            "Descargar dictamen PDF",
+            "Descargar informe PDF",
             data=pdf,
             file_name=report_filename(analisis["documento"], analisis["fecha"]),
             mime="application/pdf",

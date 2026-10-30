@@ -312,10 +312,10 @@ def test_generate_report_delega_en_el_modelo_de_reporte(integrator, monkeypatch)
     resultado = {"label": "viral", "probabilities": [0.1, 0.2, 0.7], "preview": Mock()}
     fecha = datetime(2026, 10, 29, 9, 0, 0)
     # Act
-    contenido = integrator.generate_report("Ana Pérez", "123", resultado, fecha)
+    contenido = integrator.generate_report("Ana Pérez", "123", resultado, fecha, ".dcm")
     # Assert
     assert contenido == b"%PDF-fake"
-    constructor.assert_called_once_with("Ana Pérez", "123", "viral", [0.1, 0.2, 0.7], fecha)
+    constructor.assert_called_once_with("Ana Pérez", "123", "viral", [0.1, 0.2, 0.7], fecha, ".dcm")
 
 
 def test_report_filename_se_expone_desde_el_controlador():
@@ -325,4 +325,4 @@ def test_report_filename_se_expone_desde_el_controlador():
     # Act
     nombre = modulo_integrator.report_filename("123", datetime(2026, 10, 29, 9, 0, 0))
     # Assert
-    assert nombre == "dictamen_123_20261029_090000.pdf"
+    assert nombre == "informe_123_20261029_090000.pdf"
