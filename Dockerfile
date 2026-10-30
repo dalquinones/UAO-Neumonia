@@ -9,8 +9,8 @@
 
 FROM python:3.13-slim
 
-# Bootstrap del binario uv (único uso de pip en la imagen: instalar el gestor).
-RUN pip install --no-cache-dir uv
+# Binario uv copiado desde su imagen oficial (versión anclada): la imagen no usa pip.
+COPY --from=ghcr.io/astral-sh/uv:0.13.1 /uv /uvx /bin/
 
 WORKDIR /app
 
