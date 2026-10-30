@@ -10,6 +10,7 @@ Así el controlador no sabe cuál está usando → se prueba localmente
 sin TF y cambia de entorno (Mac/CI/Docker) sin tocar código.
 """
 
+from datetime import datetime
 from pathlib import Path
 
 import cv2
@@ -19,6 +20,9 @@ from PIL import Image
 from src.models.grad_cam import make_gradcam_heatmap, overlay_heatmap
 from src.models.preprocess_img import preprocess
 from src.models.read_img import read_dicom, read_image
+from src.models.report_pdf import build_report_pdf, report_filename
+
+__all__ = ["LABELS", "Integrator", "crear_integrador", "report_filename"]
 
 # Orden fijo del dataset de entrenamiento (3 carpetas por clase, alfabético)
 LABELS = {0: "bacteriana", 1: "normal", 2: "viral"}
@@ -90,6 +94,31 @@ class Integrator:
             "preview": preview,
             "overlay": overlay_rgb,
         }
+
+    def generate_report(
+        self, patient_name: str, patient_id: str, resultado: dict, timestamp: datetime
+    ) -> bytes:
+        """Genera el dictamen PDF a partir del resultado de :meth:`analyze`.
+
+        Args:
+            patient_name: nombre completo del paciente.
+            patient_id: número de identificación.
+            resultado: dict con 'label' y 'probabilities'.
+            timestamp: fecha y hora del resultado.
+
+        Returns:
+            bytes del PDF listo para descargar.
+
+        Raises:
+            ValueError: si falta el nombre o el documento.
+        """
+        return build_report_pdf(
+            patient_name,
+            patient_id,
+            resultado["label"],
+            resultado["probabilities"],
+            timestamp,
+        )
 
     def _read_file(self, path: str):
         """Elige el lector correcto según la extensión del archivo."""
