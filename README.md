@@ -94,8 +94,14 @@ el contrato de trabajo del equipo vive en [`CONVENCIONES.md`](CONVENCIONES.md).
    make dev          # equivalente a: uv sync + uv run pre-commit install
    ```
 
-4. Copie el modelo entrenado `WilhemNet_86.h5` a la raíz del proyecto (pesa
-   ~112 MB y **no se versiona**; lo comparte el equipo por unidad externa).
+4. Descargue el modelo entrenado `WilhemNet_86.h5` (~112 MB, **no se versiona**):
+
+   ```bash
+   make model        # equivalente a: uv run python -m scripts.download_model
+   ```
+
+   El script lo deja en la raíz (o en `MODEL_PATH`), verifica su **SHA-256** y no
+   vuelve a descargarlo si ya está y es válido.
 
 5. Verifique que el entorno está sano:
 

@@ -89,6 +89,7 @@ UAO-Neumonia/
 ├── LICENSE                # MIT (fork académico)
 ├── Makefile + .pre-commit-config.yaml + .editorconfig
 ├── pyproject.toml + uv.lock
+├── scripts/download_model.py  # descarga de WilhemNet_86.h5 con SHA-256 (`make model`)
 └── verify_pipeline.py     # verificador de recepción (7 checks)
 ```
 
@@ -178,6 +179,7 @@ es la puerta de entrada; la CI replica esa misma paridad en GitHub.
 | 2026-10-29 | Dictamen → **Informe de apoyo diagnóstico**: estructura estudio → resultado → impresión (ACR / RSNA RadReport), léxico de certeza de Panicek-Hricak (compatible ≥ 90 %, sugestivo ≥ 75 %, posible ≥ 50 %, no concluyente; normal: improbable / menos probable), etiología bacteriana/viral presentada como asociación del modelo, "Puntaje del modelo" en lugar de "Probabilidad" (softmax no calibrado) y aviso de uso académico | Validación contra práctica de informes radiológicos reales: la radiografía sola no confirma la etiología y el puntaje no equivale a probabilidad clínica |
 | 2026-10-29 | Ruff exige **type hints (`ANN`) y docstrings (`D1`)** en el código de producción (`test/` exento); `tf.keras.Model` se anota vía `TYPE_CHECKING` para no romper la carga diferida de TF | Checklist 6.2 A: "type hints y docstrings en todas las funciones" verificado por `ruff check .`, no por revisión manual |
 | 2026-10-29 | **Alta cohesión de la lectura**: `read_img.read_file` elige el lector por extensión y `SUPPORTED_EXTENSIONS` es la única lista de formatos; el controlador la reexporta y la vista la deriva (uploader, validación y avisos) | Sumar un formato (p. ej. DICOM → NIfTI) toca **solo** `read_img`; antes también obligaba a cambiar `Integrator._read_file` y la vista |
+| 2026-10-30 | **Descarga del modelo** con `scripts/download_model.py` (`make model`): stdlib `urllib`, destino `MODEL_PATH` o `WilhemNet_86.h5`, verificación **SHA-256** antes de dejar el archivo (sin parciales) | Checklist 6.2 D: los pesos no van en Git y se obtienen con un script documentado; la URL es HTTP plano, el hash garantiza integridad |
 
 ## 10. Roadmap y tareas pendientes
 
