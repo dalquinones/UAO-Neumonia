@@ -64,6 +64,7 @@ estándar personal (`uv_build`) — el proyecto corre en **modo virtual** (ver �
 | **CI/CD** | GitHub Actions — [`.github/workflows/ci.yml`](.github/workflows/ci.yml) (paridad local↔CI) |
 | **DeepLearning** | TensorFlow (SOLO en Docker/CI; lazy en local) |
 | **Visión/DICOM** | OpenCV `4.12.0.88` headless · pydicom · Pillow |
+| **Reportes** | [`fpdf2`](https://py-pdf.github.io/fpdf2/) — dictamen PDF del resultado (`src/models/report_pdf.py`) |
 | **Diagramas** | [Archify](https://github.com/tt-a1i/archify) — `docs/arquitectura.{json,html}` |
 
 > ⚠️ **Regla dura:** toda gestión de dependencias y entornos pasa por `uv`. Está
@@ -74,7 +75,7 @@ estándar personal (`uv_build`) — el proyecto corre en **modo virtual** (ver �
 
 ```text
 UAO-Neumonia/
-├── src/models/            # capa modelo: read_img, preprocess_img, load_model, grad_cam
+├── src/models/            # capa modelo: read_img, preprocess_img, load_model, grad_cam, report_pdf
 ├── src/controllers/       # integrator (fachada MVC con modelo inyectado)
 ├── src/views/             # interfaz gráfica (en construcción)
 ├── test/                  # conftest.py (dobles), test_fakes.py (9) y reparto de 120
@@ -173,6 +174,7 @@ es la puerta de entrada; la CI replica esa misma paridad en GitHub.
 | 2026-10-27 | Vista **Streamlit** (`src/views/app.py`) + `Integrator.explain()` (overlay Grad-CAM → PIL RGB) + fix del contrato 2D de Grad-CAM | Vista pura (§5): la UI solo habla con `Integrator`; explicabilidad reutilizable sin que la vista importe cv2/tf/pydicom |
 | 2026-10-27 | **Paso 4 — Docker**: `Dockerfile` `python:3.13-slim` + `uv` (`uv sync --no-dev --group docker`), `tensorflow-cpu==2.20.0` como grupo `docker`, `MODEL_PATH` y `.dockerignore` | TensorFlow solo dentro de la imagen; el checkpoint se monta en runtime (no se hornea); nunca `pip`/`requirements.txt` |
 | 2026-10-27 | **Paso 5 — CI + protección de `main`**: `ci.yml` ampliado a pushes de `feature/**`; protección de `main` (require PR + 1 approval + check `Calidad` verde) vía Settings → Branches | Cerrar el Paso 5: CI aplicada a la rama y `main` solo recibe releases por PR aprobado (runbook en `odd/tasks/ci-paso5.md`) |
+| 2026-10-29 | **Dictamen PDF** descargable desde «Resultado» (`fpdf2`): nombre completo + identificación obligatorios antes de *Analizar*, fecha/hora (UTC-5), probabilidad más alta y dictamen según clase y confianza (alta ≥ 80 %, moderada ≥ 60 %, baja < 60 %), con aviso de apoyo diagnóstico por IA | Entregar un dictamen tipo médico sin que la vista conozca el modelo: `report_pdf` en la capa modelo, expuesto vía `Integrator.generate_report` |
 
 ## 10. Roadmap y tareas pendientes
 

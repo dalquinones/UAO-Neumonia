@@ -86,6 +86,24 @@ def test_analizar_archivo_normaliza_dicom_corrupto():
     integrator.explain.assert_not_called()
 
 
+def test_datos_paciente_completos_exige_nombre_y_documento():
+    # Arrange / Act / Assert — espacios en blanco no cuentan como dato.
+    assert app.datos_paciente_completos("Ana Pérez", "1020304050") is True
+    assert app.datos_paciente_completos("", "1020304050") is False
+    assert app.datos_paciente_completos("Ana Pérez", "   ") is False
+    assert app.datos_paciente_completos(" ", "") is False
+
+
+def test_ahora_colombia_usa_utc_menos_5():
+    # Arrange
+    from datetime import timedelta
+
+    # Act
+    fecha = app.ahora_colombia()
+    # Assert
+    assert fecha.utcoffset() == timedelta(hours=-5)
+
+
 def test_app_smoke_sin_modelo_muestra_aviso(monkeypatch, tmp_path):
     # Arrange — forzar la ausencia del checkpoint sin depender del entorno.
     from pathlib import Path
