@@ -133,6 +133,11 @@ dmypy.json
 WilhemNet_86.h5
 WilhemNet86.h5
 conv_MLP_84.h5
+*.joblib
+
+# ── Notebooks y datos crudos (fuera del repo; los tests usan data/ sintético) ──
+*.ipynb
+data/raw/*.dcm
 
 # ── Entorno y cachés ──
 .venv/
