@@ -19,6 +19,7 @@ from pydicom.errors import InvalidDicomError
 from src.controllers import integrator as modulo_integrador
 from src.controllers.integrator import Integrator
 from src.models import preprocess_img as modulo_preprocesamiento
+from src.models import read_img as modulo_lectura
 from src.models.grad_cam import make_gradcam_heatmap, overlay_heatmap
 from src.models.load_model import load_model
 from src.models.preprocess_img import preprocess
@@ -256,8 +257,8 @@ def test_pipeline_ruta_inexistente_impide_preprocesamiento_e_inferencia(
     lector_jpg = Mock(wraps=read_image)
     lector_dcm = Mock(wraps=read_dicom)
     procesador = Mock(wraps=preprocess)
-    monkeypatch.setattr(modulo_integrador, "read_image", lector_jpg)
-    monkeypatch.setattr(modulo_integrador, "read_dicom", lector_dcm)
+    monkeypatch.setattr(modulo_lectura, "read_image", lector_jpg)
+    monkeypatch.setattr(modulo_lectura, "read_dicom", lector_dcm)
     monkeypatch.setattr(modulo_integrador, "preprocess", procesador)
 
     # Act — analizar una ruta que no existe.
@@ -306,7 +307,7 @@ def test_pipeline_fallo_de_clahe_impide_inferencia(ruta_jpg, monkeypatch, fake_m
     clahe = Mock(side_effect=causa)
     lector = Mock(wraps=read_image)
     monkeypatch.setattr(modulo_preprocesamiento.cv2, "createCLAHE", clahe)
-    monkeypatch.setattr(modulo_integrador, "read_image", lector)
+    monkeypatch.setattr(modulo_lectura, "read_image", lector)
 
     # Act — leer y procesar hasta alcanzar el fallo programado.
     with pytest.raises(cv2.error, match="fallo CLAHE simulado") as error:
@@ -382,7 +383,7 @@ def test_pipeline_error_de_carga_impide_lectura_e_inferencia(
     escenario.cargador.side_effect = causa
     lector = Mock(wraps=read_image)
     analisis = Mock()
-    monkeypatch.setattr(modulo_integrador, "read_image", lector)
+    monkeypatch.setattr(modulo_lectura, "read_image", lector)
     monkeypatch.setattr(Integrator, "analyze", analisis)
 
     # Act — intentar inicializar el modelo antes del recorrido del archivo.

@@ -16,10 +16,18 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import streamlit as st
+from streamlit.runtime.uploaded_file_manager import UploadedFile
 
-from src.controllers.integrator import Integrator, crear_integrador, report_filename
+from src.controllers.integrator import (
+    SUPPORTED_EXTENSIONS,
+    Integrator,
+    crear_integrador,
+    report_filename,
+)
 
-EXTENSIONES_PERMITIDAS = (".dcm", ".jpg", ".jpeg", ".png")
+# Los formatos los define la capa de lectura: la vista no los repite.
+EXTENSIONES_PERMITIDAS = SUPPORTED_EXTENSIONS
+TIPOS_SUBIDA = [extension.lstrip(".") for extension in SUPPORTED_EXTENSIONS]
 
 # Colombia no usa horario de verano: UTC-5 fijo, sin depender de tzdata en Docker.
 ZONA_COLOMBIA = timezone(timedelta(hours=-5), "COT")
@@ -80,7 +88,7 @@ def obtener_integrador() -> Integrator | None:
         return None
 
 
-def _guardar_subida(archivo) -> str:
+def _guardar_subida(archivo: UploadedFile) -> str:
     """Guarda el archivo subido en un temporal y devuelve su ruta."""
     sufijo = Path(archivo.name).suffix
     with tempfile.NamedTemporaryFile(delete=False, suffix=sufijo) as temporal:
@@ -184,10 +192,11 @@ def main() -> None:
         nombre = st.text_input("Nombre completo")
         documento = st.text_input("Número de identificación")
 
-    archivo = st.file_uploader("Subí una radiografía", type=["dcm", "jpg", "jpeg", "png"])
+    archivo = st.file_uploader("Subí una radiografía", type=TIPOS_SUBIDA)
 
     if archivo is None:
-        st.info("Subí una imagen (`.dcm`, `.jpg`, `.jpeg` o `.png`) para comenzar.")
+        formatos = ", ".join(f"`{extension}`" for extension in EXTENSIONES_PERMITIDAS)
+        st.info(f"Subí una imagen ({formatos}) para comenzar.")
         return
 
     if not extension_permitida(archivo.name):

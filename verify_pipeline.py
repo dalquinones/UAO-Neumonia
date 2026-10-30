@@ -16,6 +16,10 @@ Si falla un check, el script aborta con código 1 (útil también en CI).
 
 import sys
 from pathlib import Path
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    import numpy as np
 
 DATA = Path("data")
 
@@ -29,6 +33,7 @@ def check(nombre: str, condicion: bool, detalle: str = "") -> None:
 
 
 def main() -> None:
+    """Ejecuta los checks de recepción del pipeline y termina con error al primer fallo."""
     # ── 1) read_img ──────────────────────────────────────────────
     from src.models.read_img import read_dicom, read_image
 
@@ -67,7 +72,7 @@ def main() -> None:
     class FakeModel:
         """Stub con la misma interfaz que un modelo Keras."""
 
-        def predict(self, x):
+        def predict(self, x: "np.ndarray") -> list[list[float]]:
             assert x.shape == (1, 512, 512, 1), "contrato del tensor incumplido"
             return [[0.1, 0.7, 0.2]]
 

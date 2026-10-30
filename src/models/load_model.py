@@ -51,7 +51,7 @@ def load_model(path: str | None = None) -> "tf.keras.Model":
     return modelo
 
 
-def _validate_architecture(modelo) -> None:
+def _validate_architecture(modelo: "tf.keras.Model") -> None:
     """Falla temprano si el .h5 no es el que esperamos."""
     nombres = {capa.name for capa in modelo.layers}
     if CONV_LAYER_NAME not in nombres:

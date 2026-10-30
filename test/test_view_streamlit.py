@@ -19,6 +19,14 @@ def test_extension_permitida_acepta_formatos_soportados():
         assert app.extension_permitida(nombre) is True
 
 
+def test_vista_acepta_los_formatos_que_expone_la_capa_de_lectura():
+    # Arrange / Act / Assert — sumar un formato (p. ej. NIfTI) solo toca read_img.
+    from src.controllers.integrator import SUPPORTED_EXTENSIONS
+
+    assert app.EXTENSIONES_PERMITIDAS == SUPPORTED_EXTENSIONS
+    assert app.TIPOS_SUBIDA == [extension.lstrip(".") for extension in SUPPORTED_EXTENSIONS]
+
+
 def test_extension_permitida_rechaza_formatos_desconocidos():
     # Arrange / Act / Assert — CSV/PDF quedan fuera del MVP (S4).
     for nombre in ("rx.pdf", "rx.csv", "rx.txt", "rx"):
