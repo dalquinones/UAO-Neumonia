@@ -11,9 +11,6 @@ from fpdf import FPDF
 
 APP_NAME = "Detector de Neumonía"
 
-# Orden fijo del dataset (igual que LABELS del controlador).
-_LABELS = ("bacteriana", "normal", "viral")
-
 _HALLAZGOS = {
     "bacteriana": (
         "Hallazgos radiológicos compatibles con neumonía de probable origen bacteriano. "

@@ -17,7 +17,7 @@ from pathlib import Path
 
 import streamlit as st
 
-from src.controllers.integrator import LABELS, Integrator, crear_integrador, report_filename
+from src.controllers.integrator import Integrator, crear_integrador, report_filename
 
 EXTENSIONES_PERMITIDAS = (".dcm", ".jpg", ".jpeg", ".png")
 
@@ -38,11 +38,6 @@ def datos_paciente_completos(nombre: str, documento: str) -> bool:
 def ahora_colombia() -> datetime:
     """Fecha y hora actual en la zona horaria de Colombia (UTC-5)."""
     return datetime.now(ZONA_COLOMBIA)
-
-
-def formatear_probabilidades(probabilidades: list[float]) -> list[str]:
-    """Convierte las probabilidades a textos legibles «clase: NN.N%»."""
-    return [f"{LABELS[i]}: {probabilidades[i] * 100:.1f}%" for i in range(len(probabilidades))]
 
 
 def analizar_archivo(integrator: Integrator, path: str) -> dict:
@@ -249,9 +244,6 @@ def _mostrar_resultado(integrator: Integrator, analisis: dict) -> None:
             f"Paciente: {analisis['nombre']} · Identificación: {analisis['documento']} · "
             f"{analisis['fecha']:%d/%m/%Y %H:%M:%S}"
         )
-        st.metric("Clase", analisis["resultado"]["label"])
-        for texto in formatear_probabilidades(analisis["resultado"]["probabilities"]):
-            st.write(texto)
         pdf = integrator.generate_report(
             analisis["nombre"], analisis["documento"], analisis["resultado"], analisis["fecha"]
         )
