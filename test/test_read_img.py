@@ -267,3 +267,27 @@ def test_read_file_rechaza_directorio_como_archivo(tmp_path):
         read_img.read_file(ruta)
     # Assert
     assert str(error.value) == f"No se encontró el archivo: {ruta}"
+
+
+def test_read_file_dicom_real_entrega_preview_en_grises(ruta_dcm):
+    # Arrange / Act — recorrido real, sin dobles.
+    _, preview = read_img.read_file(ruta_dcm)
+    # Assert
+    assert preview.mode == "L"
+
+
+def test_read_file_jpg_real_entrega_preview_rgb(ruta_jpg):
+    # Arrange / Act
+    _, preview = read_img.read_file(ruta_jpg)
+    # Assert
+    assert preview.mode == "RGB"
+
+
+def test_read_file_con_ruta_inexistente_informa_la_ruta(tmp_path):
+    # Arrange
+    ruta = str(tmp_path / "no_existe.png")
+    # Act
+    with pytest.raises(FileNotFoundError) as error:
+        read_img.read_file(ruta)
+    # Assert
+    assert str(error.value) == f"No se encontró el archivo: {ruta}"
