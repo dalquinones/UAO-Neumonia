@@ -115,10 +115,13 @@ el `Integrator` — nunca importa `tensorflow`/`cv2`/`pydicom`:
 uv run streamlit run src/views/app.py
 ```
 
-El flujo de la UI: subir una radiografía (`.dcm`, `.jpg`, `.jpeg` o `.png`) →
-*'Analizar'* → se muestran la clase + probabilidades + preview y el overlay
-Grad-CAM. Los errores (archivo inexistente o corrupto, formato no soportado) se
-informan de forma amigable. La persistencia CSV/PDF del monolito queda **fuera del
+El flujo de la UI: ingresar el nombre completo y el número de identificación del
+paciente → subir una radiografía (`.dcm`, `.jpg`, `.jpeg` o `.png`) → *'Analizar'*
+(deshabilitado mientras falten los datos) → se muestran la preview, el overlay
+Grad-CAM y el botón *'Descargar informe PDF'* (encabezado
+«Detector de Neumonía», datos del paciente, fecha y hora, estudio, puntaje más alto
+del modelo e impresión diagnóstica de apoyo por IA). Los errores (archivo inexistente o corrupto, formato no soportado)
+se informan de forma amigable. La persistencia CSV del monolito queda **fuera del
 MVP** (no-propósito en `CONSTITUTION.md` §1).
 
 El pipeline también se recibe por consola:

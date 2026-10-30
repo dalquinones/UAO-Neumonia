@@ -1,8 +1,8 @@
 """Pruebas AAA de la vista Streamlit: lógica pura testeable + smoke test.
 
 La vista es una cáscara fina del MVC: no importa tensorflow/cv2/pydicom y solo
-habla con el controlador. Aquí se cubren las funciones puras (extensión y
-formato de probabilidades) y el envoltorio de errores, más un smoke test con
+habla con el controlador. Aquí se cubren las funciones puras (extensión y datos
+del paciente) y el envoltorio de errores, más un smoke test con
 streamlit.testing.v1.AppTest.
 """
 
@@ -23,15 +23,6 @@ def test_extension_permitida_rechaza_formatos_desconocidos():
     # Arrange / Act / Assert — CSV/PDF quedan fuera del MVP (S4).
     for nombre in ("rx.pdf", "rx.csv", "rx.txt", "rx"):
         assert app.extension_permitida(nombre) is False
-
-
-def test_formatear_probabilidades_usa_etiquetas_y_porcentajes():
-    # Arrange
-    probabilidades = [0.9, 0.05, 0.05]
-    # Act
-    textos = app.formatear_probabilidades(probabilidades)
-    # Assert
-    assert textos == ["bacteriana: 90.0%", "normal: 5.0%", "viral: 5.0%"]
 
 
 def test_analizar_archivo_devuelve_resultado_y_overlay():
@@ -84,6 +75,24 @@ def test_analizar_archivo_normaliza_dicom_corrupto():
     assert "error" in salida
     assert "corrupto" in salida["error"]
     integrator.explain.assert_not_called()
+
+
+def test_datos_paciente_completos_exige_nombre_y_documento():
+    # Arrange / Act / Assert — espacios en blanco no cuentan como dato.
+    assert app.datos_paciente_completos("Ana Pérez", "1020304050") is True
+    assert app.datos_paciente_completos("", "1020304050") is False
+    assert app.datos_paciente_completos("Ana Pérez", "   ") is False
+    assert app.datos_paciente_completos(" ", "") is False
+
+
+def test_ahora_colombia_usa_utc_menos_5():
+    # Arrange
+    from datetime import timedelta
+
+    # Act
+    fecha = app.ahora_colombia()
+    # Assert
+    assert fecha.utcoffset() == timedelta(hours=-5)
 
 
 def test_app_smoke_sin_modelo_muestra_aviso(monkeypatch, tmp_path):

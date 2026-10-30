@@ -3,7 +3,8 @@
 Regla dura (CONSTITUTION.md §5): esta vista NUNCA importa tensorflow/cv2/pydicom.
 Solo habla con la capa controlador (Integrator y su fábrica). La carga del modelo
 es diferida: sin `WilhemNet_86.h5` en la raíz, la app avisa de forma amigable y
-mantiene la interfaz viva. La persistencia CSV/PDF queda fuera del MVP.
+mantiene la interfaz viva. El resultado se puede descargar como informe PDF con
+los datos del paciente (la persistencia CSV queda fuera del MVP).
 
 Ejecutar:
 
@@ -11,13 +12,17 @@ Ejecutar:
 """
 
 import tempfile
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import streamlit as st
 
-from src.controllers.integrator import LABELS, Integrator, crear_integrador
+from src.controllers.integrator import Integrator, crear_integrador, report_filename
 
 EXTENSIONES_PERMITIDAS = (".dcm", ".jpg", ".jpeg", ".png")
+
+# Colombia no usa horario de verano: UTC-5 fijo, sin depender de tzdata en Docker.
+ZONA_COLOMBIA = timezone(timedelta(hours=-5), "COT")
 
 
 def extension_permitida(nombre: str) -> bool:
@@ -25,9 +30,14 @@ def extension_permitida(nombre: str) -> bool:
     return Path(nombre).suffix.lower() in EXTENSIONES_PERMITIDAS
 
 
-def formatear_probabilidades(probabilidades: list[float]) -> list[str]:
-    """Convierte las probabilidades a textos legibles «clase: NN.N%»."""
-    return [f"{LABELS[i]}: {probabilidades[i] * 100:.1f}%" for i in range(len(probabilidades))]
+def datos_paciente_completos(nombre: str, documento: str) -> bool:
+    """True si el nombre y el número de identificación tienen contenido."""
+    return bool(nombre.strip()) and bool(documento.strip())
+
+
+def ahora_colombia() -> datetime:
+    """Fecha y hora actual en la zona horaria de Colombia (UTC-5)."""
+    return datetime.now(ZONA_COLOMBIA)
 
 
 def analizar_archivo(integrator: Integrator, path: str) -> dict:
@@ -169,6 +179,11 @@ def main() -> None:
     if integrator is None:
         return
 
+    with st.container(border=True):
+        st.subheader("Datos del paciente")
+        nombre = st.text_input("Nombre completo")
+        documento = st.text_input("Número de identificación")
+
     archivo = st.file_uploader("Subí una radiografía", type=["dcm", "jpg", "jpeg", "png"])
 
     if archivo is None:
@@ -179,7 +194,11 @@ def main() -> None:
         st.error(f"Formato no soportado: `{archivo.name}`.")
         return
 
-    if st.button("Analizar", type="primary"):
+    datos_completos = datos_paciente_completos(nombre, documento)
+    if not datos_completos:
+        st.warning("Ingresá el nombre completo y el número de identificación para analizar.")
+
+    if st.button("Analizar", type="primary", disabled=not datos_completos):
         ruta = _guardar_subida(archivo)
         try:
             with st.spinner("Analizando la radiografía…"):
@@ -188,24 +207,58 @@ def main() -> None:
             Path(ruta).unlink(missing_ok=True)
 
         if "error" in resultado:
+            st.session_state.pop("analisis", None)
             st.error(resultado["error"])
             return
 
-        with st.container(border=True):
-            st.subheader("Análisis visual")
-            columna_preview, columna_overlay = st.columns(2)
-            with columna_preview:
-                st.markdown("**Previsualización**")
-                st.image(resultado["resultado"]["preview"])
-            with columna_overlay:
-                st.markdown("**Grad-CAM**")
-                st.image(resultado["overlay"])
+        # Se persiste en la sesión: el clic en "Descargar" re-ejecuta el script y,
+        # sin esto, el resultado desaparecería de la pantalla.
+        st.session_state["analisis"] = {
+            **resultado,
+            "archivo_id": archivo.file_id,
+            "extension": Path(archivo.name).suffix,
+            "nombre": nombre.strip(),
+            "documento": documento.strip(),
+            "fecha": ahora_colombia(),
+        }
 
-        with st.container(border=True):
-            st.subheader("Resultado")
-            st.metric("Clase", resultado["resultado"]["label"])
-            for texto in formatear_probabilidades(resultado["resultado"]["probabilities"]):
-                st.write(texto)
+    analisis = st.session_state.get("analisis")
+    if analisis is not None and analisis["archivo_id"] == archivo.file_id:
+        _mostrar_resultado(integrator, analisis)
+
+
+def _mostrar_resultado(integrator: Integrator, analisis: dict) -> None:
+    """Pinta el análisis visual, el resultado y la descarga del informe PDF."""
+    with st.container(border=True):
+        st.subheader("Análisis visual")
+        columna_preview, columna_overlay = st.columns(2)
+        with columna_preview:
+            st.markdown("**Previsualización**")
+            st.image(analisis["resultado"]["preview"])
+        with columna_overlay:
+            st.markdown("**Grad-CAM**")
+            st.image(analisis["overlay"])
+
+    with st.container(border=True):
+        st.subheader("Resultado")
+        st.caption(
+            f"Paciente: {analisis['nombre']} · Identificación: {analisis['documento']} · "
+            f"{analisis['fecha']:%d/%m/%Y %H:%M:%S}"
+        )
+        pdf = integrator.generate_report(
+            analisis["nombre"],
+            analisis["documento"],
+            analisis["resultado"],
+            analisis["fecha"],
+            analisis["extension"],
+        )
+        st.download_button(
+            "Descargar informe PDF",
+            data=pdf,
+            file_name=report_filename(analisis["documento"], analisis["fecha"]),
+            mime="application/pdf",
+            type="primary",
+        )
 
 
 if __name__ == "__main__":
