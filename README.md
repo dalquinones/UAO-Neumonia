@@ -3,6 +3,7 @@
 [![CI](https://github.com/JuanC0319/UAO-Neumonia/actions/workflows/ci.yml/badge.svg)](https://github.com/JuanC0319/UAO-Neumonia/actions/workflows/ci.yml)
 [![Python](https://img.shields.io/badge/python-3.13-3776AB)](https://www.python.org/)
 [![uv](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fastral-sh%2Fuv%2Fmain%2Fassets%2Fbadge.json)](https://docs.astral.sh/uv/)
+[![pytest](https://img.shields.io/badge/tested%20with-pytest-0A9EDC?logo=pytest&logoColor=white)](https://docs.pytest.org/)
 [![Ruff](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fastral-sh%2Fruff%2Fmain%2Fassets%2Fbadge%2Fv2.json)](https://docs.astral.sh/ruff/)
 [![Licencia](https://img.shields.io/badge/licencia-MIT-green)](LICENSE)
 [![Commits](https://img.shields.io/badge/commits-Conventional%20-fe5100)](https://www.conventionalcommits.org/)
