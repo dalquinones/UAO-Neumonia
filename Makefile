@@ -5,7 +5,7 @@
 SHELL := /bin/bash
 
 .DEFAULT_GOAL := help
-.PHONY: help install dev pre-commit-install pre-commit lint format format-check verify test check clean
+.PHONY: help install dev model pre-commit-install pre-commit lint format format-check verify test check clean
 
 help: ## Muestra esta ayuda
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-18s\033[0m %s\n", $$1, $$2}'
@@ -14,6 +14,9 @@ install: ## Sincroniza el entorno virtual e instala dependencias
 	uv sync
 
 dev: install pre-commit-install ## Prepara el entorno de desarrollo (sync + hooks)
+
+model: ## Descarga WilhemNet_86.h5 y verifica su SHA-256
+	uv run python -m scripts.download_model
 
 pre-commit-install: ## Instala los hooks de pre-commit en el repositorio local
 	uv run pre-commit install
