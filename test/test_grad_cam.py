@@ -302,3 +302,89 @@ def test_superposicion_con_alpha_cero_conserva_imagen_original():
 
     # Assert — todos los píxeles conservan los valores originales.
     np.testing.assert_array_equal(resultado, esperado)
+
+
+def test_gradcam_devuelve_float32(gradcam_simulado):
+    # Arrange
+    escenario = gradcam_simulado
+    # Act
+    mapa = make_gradcam_heatmap(escenario.modelo, escenario.tensor)
+    # Assert
+    assert mapa.dtype == np.float32
+
+
+def test_gradcam_normaliza_el_pico_a_uno(gradcam_simulado):
+    # Arrange
+    escenario = gradcam_simulado
+    # Act
+    mapa = make_gradcam_heatmap(escenario.modelo, escenario.tensor)
+    # Assert
+    assert float(mapa.max()) == pytest.approx(1.0)
+
+
+def test_gradcam_no_produce_valores_negativos(gradcam_simulado):
+    # Arrange — gradientes mixtos: la ReLU debe recortar lo que resta.
+    escenario = gradcam_simulado
+    escenario.gradientes = _tensor(np.stack([np.ones((1, 2, 2)), -np.ones((1, 2, 2))], axis=-1))
+    # Act
+    mapa = make_gradcam_heatmap(escenario.modelo, escenario.tensor)
+    # Assert
+    assert float(mapa.min()) >= 0.0
+
+
+def test_gradcam_registra_gradientes_con_una_sola_cinta(gradcam_simulado):
+    # Arrange
+    escenario = gradcam_simulado
+    # Act
+    make_gradcam_heatmap(escenario.modelo, escenario.tensor)
+    # Assert
+    escenario.backend.GradientTape.assert_called_once_with()
+
+
+def test_gradcam_deriva_respecto_de_las_activaciones_convolucionales(gradcam_simulado):
+    # Arrange
+    escenario = gradcam_simulado
+    # Act
+    make_gradcam_heatmap(escenario.modelo, escenario.tensor)
+    # Assert — el segundo argumento de gradient() son las activaciones de conv10.
+    _, objetivo = escenario.cinta.gradient.call_args.args
+    assert objetivo is escenario.activaciones
+
+
+def test_alpha_predeterminado_es_cero_coma_cuatro():
+    # Arrange / Act / Assert
+    from src.models.grad_cam import DEFAULT_ALPHA
+
+    assert DEFAULT_ALPHA == 0.4
+
+
+def test_superposicion_rechaza_mapa_tridimensional():
+    # Arrange
+    mapa = np.zeros((2, 2, 1), dtype=np.float32)
+    imagen = np.zeros((4, 4, 3), dtype=np.uint8)
+    # Act / Assert
+    with pytest.raises(ValueError, match="El mapa debe ser 2D"):
+        overlay_heatmap(mapa, imagen)
+
+
+def test_superposicion_con_alpha_uno_muestra_solo_el_mapa():
+    # Arrange
+    mapa = np.array([[0, 1], [0.5, 0.25]], dtype=np.float32)
+    imagen = np.arange(72, dtype=np.uint8).reshape(4, 6, 3)
+    calor = cv2.resize(np.uint8(255 * mapa), (6, 4))
+    esperado = cv2.applyColorMap(calor, cv2.COLORMAP_JET)
+    # Act
+    resultado = overlay_heatmap(mapa, imagen, alpha=1.0)
+    # Assert
+    np.testing.assert_array_equal(resultado, esperado)
+
+
+def test_superposicion_no_modifica_la_imagen_original():
+    # Arrange
+    mapa = np.array([[0, 1], [0.5, 0.25]], dtype=np.float32)
+    imagen = np.arange(72, dtype=np.uint8).reshape(4, 6, 3)
+    copia = imagen.copy()
+    # Act
+    overlay_heatmap(mapa, imagen)
+    # Assert
+    np.testing.assert_array_equal(imagen, copia)
