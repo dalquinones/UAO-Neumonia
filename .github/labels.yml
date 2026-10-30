@@ -1,0 +1,43 @@
+# Etiquetas del repositorio (fuente única de verdad).
+# Se sincronizan con GitHub mediante .github/workflows/labels.yml
+# Formato: name, color (hex sin '#'), description.
+
+# --- Tipo de trabajo ---
+- name: bug
+  color: d73a4a
+  description: "Algo no funciona correctamente"
+- name: enhancement
+  color: a2eeef
+  description: "Nueva funcionalidad o mejora"
+- name: documentation
+  color: 0075ca
+  description: "Mejoras o adiciones a la documentación"
+- name: spike
+  color: 5319e7
+  description: "Investigación técnica acotada en el tiempo (timebox)"
+- name: refactor
+  color: cfb62e
+  description: "Cambio interno sin alterar el comportamiento"
+- name: test
+  color: 0e8a16
+  description: "Pruebas y cobertura"
+- name: chore
+  color: fef2c0
+  description: "Mantenimiento y configuración"
+
+# --- Área técnica ---
+- name: backend
+  color: 5319e7
+  description: "Backend / API"
+- name: ui
+  color: f9d0c4
+  description: "Interfaz de usuario / frontend"
+- name: data
+  color: fbca04
+  description: "Datos, curaduría y procesamiento"
+- name: ml
+  color: c2e0c6
+  description: "Machine Learning, evaluación y métricas"
+- name: infra
+  color: bfdadc
+  description: "Infraestructura, entorno y CI/CD"

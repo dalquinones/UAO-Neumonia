@@ -1,0 +1,181 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Arquitectura MVC — UAO-Neumonia",
+    "subtitle": "Detector de neumonía con CNN (WilhemNet_86) · taller UAO: vista ↔ controller ↔ models",
+    "locale": "es",
+    "output": "docs/arquitectura.html",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/JuanC0319/UAO-Neumonia.git",
+      "revision": "bf3eaf5dd8c7928173d0b9acf2d2fed2f69c65dd",
+      "provider": "github",
+      "link_mode": "web"
+    }
+  },
+  "components": [
+    {
+      "id": "vista",
+      "type": "frontend",
+      "label": "Vista (UI)",
+      "sublabel": "src/views · en construcción",
+      "pos": [40, 220],
+      "size": [130, 64],
+      "sources": [
+        { "path": "src/controllers/integrator.py", "line": 1, "end_line": 9, "label": "contrato MVC: nunca importa TF" }
+      ]
+    },
+    {
+      "id": "integrator",
+      "type": "backend",
+      "label": "Integrator",
+      "sublabel": "fachada MVC · modelo inyectado",
+      "pos": [240, 220],
+      "size": [150, 64],
+      "sources": [
+        { "path": "src/controllers/integrator.py", "line": 30, "end_line": 53, "label": "analyze() orquesta" },
+        { "path": "src/controllers/integrator.py", "line": 26, "end_line": 28, "label": "modelo inyectado (DI)" }
+      ]
+    },
+    {
+      "id": "readimg",
+      "type": "backend",
+      "label": "read_img",
+      "sublabel": "DICOM/JPG → BGR + preview",
+      "pos": [480, 120],
+      "size": [150, 60],
+      "sources": [
+        { "path": "src/models/read_img.py", "line": 25, "end_line": 47, "label": "read_dicom()" },
+        { "path": "src/models/read_img.py", "line": 50, "end_line": 67, "label": "read_image()" }
+      ]
+    },
+    {
+      "id": "preprocess",
+      "type": "backend",
+      "label": "preprocess_img",
+      "sublabel": "tensor (1,512,512,1) float32",
+      "pos": [480, 340],
+      "size": [150, 60],
+      "sources": [
+        { "path": "src/models/preprocess_img.py", "line": 17, "end_line": 56, "label": "preprocess()" }
+      ]
+    },
+    {
+      "id": "gradcam",
+      "type": "backend",
+      "label": "grad_cam",
+      "sublabel": "heatmap + overlay (Grad-CAM)",
+      "pos": [640, 220],
+      "size": [150, 64],
+      "sources": [
+        { "path": "src/models/grad_cam.py", "line": 20, "end_line": 58, "label": "make_gradcam_heatmap()" },
+        { "path": "src/models/grad_cam.py", "line": 61, "end_line": 86, "label": "overlay_heatmap()" }
+      ]
+    },
+    {
+      "id": "loadmodel",
+      "type": "backend",
+      "label": "load_model",
+      "sublabel": "carga .h5 · arquitectura validada",
+      "pos": [195, 470],
+      "size": [150, 60],
+      "sources": [
+        { "path": "src/models/load_model.py", "line": 25, "end_line": 49, "label": "load_model(): ruta + lazy" },
+        { "path": "src/models/load_model.py", "line": 50, "end_line": 62, "label": "_validate_architecture()" }
+      ]
+    },
+    {
+      "id": "fakemodel",
+      "type": "external",
+      "label": "FakeModel",
+      "sublabel": "doble de pruebas (sin TF)",
+      "tag": "pytest + fixtures",
+      "pos": [720, 470],
+      "size": [150, 64],
+      "sources": [
+        { "path": "test/conftest.py", "line": 34, "end_line": 53, "label": "FakeModel.predict" },
+        { "path": "test/conftest.py", "line": 100, "end_line": 104, "label": "fixture integrator" }
+      ]
+    },
+    {
+      "id": "tf",
+      "type": "external",
+      "label": "TensorFlow 2 (Keras)",
+      "sublabel": "runtime real · solo Docker/CI",
+      "tag": "lazy",
+      "pos": [480, 470],
+      "size": [140, 56],
+      "sources": [
+        { "path": "src/models/load_model.py", "line": 43, "end_line": 43, "label": "import lazy" },
+        { "path": "src/models/grad_cam.py", "line": 34, "end_line": 34, "label": "import lazy" }
+      ]
+    },
+    {
+      "id": "modeloh5",
+      "type": "database",
+      "label": "WilhemNet_86.h5",
+      "sublabel": "checkpoint 112 MB (git-ignorado)",
+      "pos": [990, 470],
+      "size": [140, 56],
+      "sources": [
+        { "path": "src/models/load_model.py", "line": 45, "end_line": 46, "label": "tf.keras.load_model()" }
+      ]
+    },
+    {
+      "id": "data",
+      "type": "database",
+      "label": "data/ (fixtures)",
+      "sublabel": "normal.dcm · radiografia.jpg",
+      "pos": [990, 120],
+      "size": [130, 56],
+      "sources": [
+        { "path": "verify_pipeline.py", "line": 34, "end_line": 44, "label": "llamadas del verificador" }
+      ]
+    }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "Aplicación UAO-Neumonia · uv + Python 3.13", "wraps": ["vista", "integrator", "readimg", "preprocess", "gradcam"] },
+    { "kind": "region", "label": "Pruebas sin TensorFlow", "wraps": ["fakemodel"] }
+  ],
+  "connections": [
+    { "id": "vista-to-integrator", "from": "vista", "to": "integrator", "label": "analyze(ruta)", "variant": "emphasis" },
+    { "id": "integrator-to-readimg", "from": "integrator", "to": "readimg", "label": "leer DICOM/JPG" },
+    { "id": "integrator-to-preprocess", "from": "integrator", "to": "preprocess", "label": "preprocess(array)" },
+    { "id": "integrator-to-gradcam", "from": "integrator", "to": "gradcam", "label": "hook explain() (por implementar)", "variant": "dashed" },
+    { "id": "loadmodel-to-integrator", "from": "loadmodel", "to": "integrator", "label": "inyecta tf.keras.Model", "fromSide": "top", "toSide": "bottom" },
+    { "id": "fakemodel-to-integrator", "from": "fakemodel", "to": "integrator", "label": "inyecta doble · predict()", "fromSide": "top", "toSide": "bottom", "via": [[795, 430], [315, 430]] },
+    { "id": "loadmodel-to-tf", "from": "loadmodel", "to": "tf", "label": "import lazy · tf.keras" },
+    { "id": "loadmodel-to-modeloh5", "from": "loadmodel", "to": "modeloh5", "label": "abre WilhemNet_86.h5", "fromSide": "bottom", "toSide": "left", "via": [[270, 610], [940, 610], [940, 498]], "labelAt": [560, 610] },
+    { "id": "readimg-to-data", "from": "readimg", "to": "data", "label": "lee fixtures" }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Flujo de análisis",
+      "items": [
+        "Integrator.analyze() orquesta: leer → preprocesar → predecir",
+        "El modelo llega inyectado: tf.keras real o doble de pruebas",
+        "Salida: {label: bacteriana/normal/viral, probabilities, preview}"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Pruebas sin TF",
+      "items": [
+        "120 tests AAA con dobles + fixtures (conftest) — TF no se instala en local",
+        "TF material solo en Docker/CI (Paso 4) gracias a imports diferidos",
+        "Recepción antes de cada push: verify_pipeline + make check"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Artefactos y contratos",
+      "items": [
+        "CONV_LAYER_NAME='conv10_thisone' · 3 clases · tensor (1,512,512,1)",
+        "WilhemNet_86.h5: 112 MB fuera de git (ruta configurable)",
+        "grad_cam y load_model comparten la convención de imports lazy"
+      ]
+    }
+  ]
+}

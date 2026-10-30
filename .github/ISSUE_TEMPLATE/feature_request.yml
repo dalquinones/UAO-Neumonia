@@ -1,0 +1,69 @@
+name: "✨ Solicitud de funcionalidad"
+description: "Propón una nueva funcionalidad o una mejora concreta del sistema."
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Gracias por proponer una mejora. 🙌
+
+        Describe el **problema** antes que la solución: entender el "para qué" ayuda a
+        diseñar la mejor implementación. Revisa
+        [`CONSTITUTION.md`](https://github.com/JuanC0319/UAO-Neumonia/blob/main/CONSTITUTION.md) para alinear la
+        propuesta con la arquitectura y el alcance del proyecto.
+
+  - type: textarea
+    id: problema
+    attributes:
+      label: "Problema o necesidad"
+      description: "¿Qué necesidad resuelve esta funcionalidad? ¿A quién afecta?"
+      placeholder: "Como ... necesito ... para ..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: solucion
+    attributes:
+      label: "Solución propuesta"
+      description: "Descripción de la funcionalidad o mejora que propones."
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternativas
+    attributes:
+      label: "Alternativas consideradas"
+      description: "Otras opciones evaluadas y por qué se descartaron."
+    validations:
+      required: false
+
+  - type: textarea
+    id: criterios
+    attributes:
+      label: "Criterios de aceptación"
+      description: "Lista de condiciones verificables que debe cumplir la funcionalidad."
+      placeholder: |
+        - [ ] ...
+        - [ ] ...
+    validations:
+      required: true
+
+  - type: input
+    id: trazabilidad
+    attributes:
+      label: "Trazabilidad"
+      description: "Issue o tarjeta Kanban relacionada (si aplica)."
+      placeholder: "#12"
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: confirmaciones
+    attributes:
+      label: "Confirmaciones"
+      options:
+        - label: "Busqué issues y propuestas existentes y no encontré un duplicado."
+          required: true
+        - label: "La propuesta está alineada con el alcance del proyecto."
+          required: true
