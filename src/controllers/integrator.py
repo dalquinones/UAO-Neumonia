@@ -11,7 +11,6 @@ sin TF y cambia de entorno (Mac/CI/Docker) sin tocar código.
 """
 
 from datetime import datetime
-from pathlib import Path
 from typing import TYPE_CHECKING
 
 import cv2
@@ -20,7 +19,7 @@ from PIL import Image
 
 from src.models.grad_cam import make_gradcam_heatmap, overlay_heatmap
 from src.models.preprocess_img import preprocess
-from src.models.read_img import read_dicom, read_image
+from src.models.read_img import SUPPORTED_EXTENSIONS, read_file
 from src.models.report_pdf import build_report_pdf, report_filename
 
 if TYPE_CHECKING:
@@ -28,7 +27,7 @@ if TYPE_CHECKING:
     # misma interfaz (duck typing) y el runtime nunca importa TF aquí.
     import tensorflow as tf
 
-__all__ = ["LABELS", "Integrator", "crear_integrador", "report_filename"]
+__all__ = ["LABELS", "SUPPORTED_EXTENSIONS", "Integrator", "crear_integrador", "report_filename"]
 
 # Orden fijo del dataset de entrenamiento (3 carpetas por clase, alfabético)
 LABELS = {0: "bacteriana", 1: "normal", 2: "viral"}
@@ -134,13 +133,8 @@ class Integrator:
         )
 
     def _read_file(self, path: str) -> tuple[np.ndarray, Image.Image]:
-        """Elige el lector correcto según la extensión del archivo."""
-        p = Path(path)
-        if not p.is_file():
-            raise FileNotFoundError(f"No se encontró el archivo: {path}")
-        if p.suffix.lower() == ".dcm":
-            return read_dicom(str(p))
-        return read_image(str(p))
+        """Delega la lectura en la capa modelo, que elige el lector por extensión."""
+        return read_file(path)
 
 
 def crear_integrador(path: str | None = None) -> Integrator:

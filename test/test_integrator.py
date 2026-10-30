@@ -1,10 +1,10 @@
 """Pruebas AAA de la orquestación de Integrator, sin TensorFlow.
 
-El controlador delega cualquier extensión distinta de .dcm al lector común y
-conserva la preview del lector, incluso si es gris (como ocurre con DICOM).
+El controlador delega la lectura en read_img.read_file (el despacho por extensión
+se prueba en test_read_img.py) y conserva la preview del lector, incluso si es gris
+(como ocurre con DICOM).
 """
 
-from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import Mock
 
@@ -178,56 +178,23 @@ def test_analyze_respeta_orden_lectura_preprocesamiento_prediccion(
     assert eventos == ["lectura", "preprocesamiento", "prediccion"]
 
 
-def test_read_file_selecciona_lector_dicom(integrator, ruta_dcm, monkeypatch):
-    # Arrange
-    lector_dicom, lector_comun = Mock(), Mock()
-    monkeypatch.setattr(modulo_integrator, "read_dicom", lector_dicom)
-    monkeypatch.setattr(modulo_integrator, "read_image", lector_comun)
+def test_read_file_delega_en_la_capa_de_lectura(integrator, monkeypatch):
+    # Arrange — el despacho por extensión vive en read_img (alta cohesión).
+    esperado = (np.zeros((2, 2, 3), dtype=np.uint8), Image.new("RGB", (2, 2)))
+    lector = Mock(return_value=esperado)
+    monkeypatch.setattr(modulo_integrator, "read_file", lector)
     # Act
-    integrator._read_file(ruta_dcm)
+    salida = integrator._read_file("rx.dcm")
     # Assert
-    lector_dicom.assert_called_once_with(str(Path(ruta_dcm)))
-    lector_comun.assert_not_called()
+    assert salida is esperado
+    lector.assert_called_once_with("rx.dcm")
 
 
-def test_read_file_selecciona_lector_jpg(integrator, ruta_jpg, monkeypatch):
-    # Arrange
-    lector_dicom, lector_comun = Mock(), Mock()
-    monkeypatch.setattr(modulo_integrator, "read_dicom", lector_dicom)
-    monkeypatch.setattr(modulo_integrator, "read_image", lector_comun)
-    # Act
-    integrator._read_file(ruta_jpg)
-    # Assert
-    lector_comun.assert_called_once_with(str(Path(ruta_jpg)))
-    lector_dicom.assert_not_called()
+def test_supported_extensions_se_expone_desde_el_controlador():
+    # Arrange / Act / Assert — la vista lee los formatos sin importar la capa modelo.
+    from src.models.read_img import SUPPORTED_EXTENSIONS
 
-
-def test_read_file_reconoce_dicom_en_mayusculas(integrator, monkeypatch):
-    # Arrange — existencia simulada para aislar la decisión por extensión.
-    ruta = "radiografia.DCM"
-    lector_dicom, lector_comun = Mock(), Mock()
-    monkeypatch.setattr(modulo_integrator.Path, "is_file", lambda self: True)
-    monkeypatch.setattr(modulo_integrator, "read_dicom", lector_dicom)
-    monkeypatch.setattr(modulo_integrator, "read_image", lector_comun)
-    # Act
-    integrator._read_file(ruta)
-    # Assert
-    lector_dicom.assert_called_once_with(ruta)
-    lector_comun.assert_not_called()
-
-
-def test_read_file_delega_extension_desconocida_a_lector_comun(integrator, monkeypatch):
-    # Arrange
-    ruta = "entrada.bin"
-    lector_dicom, lector_comun = Mock(), Mock()
-    monkeypatch.setattr(modulo_integrator.Path, "is_file", lambda self: True)
-    monkeypatch.setattr(modulo_integrator, "read_dicom", lector_dicom)
-    monkeypatch.setattr(modulo_integrator, "read_image", lector_comun)
-    # Act
-    integrator._read_file(ruta)
-    # Assert
-    lector_comun.assert_called_once_with(ruta)
-    lector_dicom.assert_not_called()
+    assert modulo_integrator.SUPPORTED_EXTENSIONS is SUPPORTED_EXTENSIONS
 
 
 def test_analyze_rechaza_dicom_inexistente(integrator, tmp_path):
@@ -250,16 +217,6 @@ def test_analyze_rechaza_jpg_inexistente(integrator, tmp_path):
     assert str(error.value) == f"No se encontró el archivo: {ruta}"
 
 
-def test_read_file_rechaza_directorio_como_archivo(integrator, tmp_path):
-    # Arrange
-    ruta = str(tmp_path)
-    # Act
-    with pytest.raises(FileNotFoundError, match="No se encontró el archivo") as error:
-        integrator._read_file(ruta)
-    # Assert
-    assert str(error.value) == f"No se encontró el archivo: {ruta}"
-
-
 def test_analyze_no_invoca_modelo_si_archivo_no_existe(integrator, fake_model, tmp_path):
     # Arrange
     ruta = str(tmp_path / "inexistente.jpg")
@@ -273,7 +230,7 @@ def test_analyze_no_invoca_modelo_si_archivo_no_existe(integrator, fake_model, t
 def test_analyze_propaga_error_del_lector(integrator, ruta_jpg, monkeypatch):
     # Arrange
     esperado = FileNotFoundError(f"No se pudo leer la imagen: {ruta_jpg}")
-    monkeypatch.setattr(modulo_integrator, "read_image", Mock(side_effect=esperado))
+    monkeypatch.setattr(modulo_integrator, "read_file", Mock(side_effect=esperado))
     # Act
     with pytest.raises(FileNotFoundError, match="No se pudo leer la imagen") as error:
         integrator.analyze(ruta_jpg)

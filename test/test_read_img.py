@@ -1,6 +1,8 @@
 """Pruebas AAA de lectura de imágenes, normalización DICOM y previews."""
 
+from pathlib import Path
 from types import SimpleNamespace
+from unittest.mock import Mock
 
 import numpy as np
 import pytest
@@ -198,3 +200,70 @@ def test_read_image_con_archivo_corrupto_lanza_error(tmp_path):
 
     # Assert — comprobar que el error identifica el archivo corrupto.
     assert str(path) in str(error.value)
+
+
+def test_supported_extensions_lista_los_formatos_del_lector():
+    # Arrange / Act / Assert — única fuente de verdad de los formatos admitidos.
+    assert read_img.SUPPORTED_EXTENSIONS == (".dcm", ".jpg", ".jpeg", ".png")
+
+
+def test_read_file_selecciona_lector_dicom(ruta_dcm, monkeypatch):
+    # Arrange
+    lector_dicom, lector_comun = Mock(), Mock()
+    monkeypatch.setattr(read_img, "read_dicom", lector_dicom)
+    monkeypatch.setattr(read_img, "read_image", lector_comun)
+    # Act
+    read_img.read_file(ruta_dcm)
+    # Assert
+    lector_dicom.assert_called_once_with(str(Path(ruta_dcm)))
+    lector_comun.assert_not_called()
+
+
+def test_read_file_selecciona_lector_jpg(ruta_jpg, monkeypatch):
+    # Arrange
+    lector_dicom, lector_comun = Mock(), Mock()
+    monkeypatch.setattr(read_img, "read_dicom", lector_dicom)
+    monkeypatch.setattr(read_img, "read_image", lector_comun)
+    # Act
+    read_img.read_file(ruta_jpg)
+    # Assert
+    lector_comun.assert_called_once_with(str(Path(ruta_jpg)))
+    lector_dicom.assert_not_called()
+
+
+def test_read_file_reconoce_dicom_en_mayusculas(monkeypatch):
+    # Arrange — existencia simulada para aislar la decisión por extensión.
+    ruta = "radiografia.DCM"
+    lector_dicom, lector_comun = Mock(), Mock()
+    monkeypatch.setattr(read_img.Path, "is_file", lambda self: True)
+    monkeypatch.setattr(read_img, "read_dicom", lector_dicom)
+    monkeypatch.setattr(read_img, "read_image", lector_comun)
+    # Act
+    read_img.read_file(ruta)
+    # Assert
+    lector_dicom.assert_called_once_with(ruta)
+    lector_comun.assert_not_called()
+
+
+def test_read_file_delega_extension_desconocida_a_lector_comun(monkeypatch):
+    # Arrange
+    ruta = "entrada.bin"
+    lector_dicom, lector_comun = Mock(), Mock()
+    monkeypatch.setattr(read_img.Path, "is_file", lambda self: True)
+    monkeypatch.setattr(read_img, "read_dicom", lector_dicom)
+    monkeypatch.setattr(read_img, "read_image", lector_comun)
+    # Act
+    read_img.read_file(ruta)
+    # Assert
+    lector_comun.assert_called_once_with(ruta)
+    lector_dicom.assert_not_called()
+
+
+def test_read_file_rechaza_directorio_como_archivo(tmp_path):
+    # Arrange
+    ruta = str(tmp_path)
+    # Act
+    with pytest.raises(FileNotFoundError, match="No se encontró el archivo") as error:
+        read_img.read_file(ruta)
+    # Assert
+    assert str(error.value) == f"No se encontró el archivo: {ruta}"
