@@ -16,6 +16,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import streamlit as st
+from streamlit.runtime.uploaded_file_manager import UploadedFile
 
 from src.controllers.integrator import Integrator, crear_integrador, report_filename
 
@@ -80,7 +81,7 @@ def obtener_integrador() -> Integrator | None:
         return None
 
 
-def _guardar_subida(archivo) -> str:
+def _guardar_subida(archivo: UploadedFile) -> str:
     """Guarda el archivo subido en un temporal y devuelve su ruta."""
     sufijo = Path(archivo.name).suffix
     with tempfile.NamedTemporaryFile(delete=False, suffix=sufijo) as temporal:

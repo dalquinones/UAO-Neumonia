@@ -10,15 +10,23 @@ En TF2 los gradientes se calculan con tf.GradientTape (el monolito
 usaba K.gradients, API de TF1 eliminada — bug corregido del refactor).
 """
 
+from typing import TYPE_CHECKING
+
 import cv2
 import numpy as np
 
 from src.models.load_model import CONV_LAYER_NAME  # constante compartida
 
+if TYPE_CHECKING:
+    # Solo para los verificadores de tipos: el runtime importa TF de forma diferida.
+    import tensorflow as tf
+
 DEFAULT_ALPHA = 0.4  # peso del mapa en la mezcla
 
 
-def make_gradcam_heatmap(modelo, tensor, class_index=None):
+def make_gradcam_heatmap(
+    modelo: "tf.keras.Model", tensor: np.ndarray, class_index: int | None = None
+) -> np.ndarray:
     """Genera el mapa de calor 2D de una clase sobre el modelo.
 
     Args:
