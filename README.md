@@ -1,105 +1,151 @@
-## Hola! Bienvenido a la herramienta para la detección rápida de neumonía
+# Proyecto Neumonía — refactor MVC (UAO, Módulo 1)
 
-Deep Learning aplicado en el procesamiento de imágenes radiográficas de tórax en formato DICOM con el fin de clasificarlas en 3 categorías diferentes:
+> Proyecto académico basado en [UAO-Neumonia de dalquinones](https://github.com/dalquinones/UAO-Neumonia).
+> **No utilizar para diagnóstico ni decisiones clínicas.**
 
-1. Neumonía Bacteriana
+## Qué hace
 
-2. Neumonía Viral
+- Permite **cargar y mostrar** radiografías DICOM (`.dcm`), JPEG (`.jpg`, `.jpeg`) o PNG.
+- Ejecuta una clasificación experimental: **neumonía bacteriana / viral / normal**.
+- Muestra las puntuaciones softmax y, cuando es posible, un mapa **Grad-CAM**.
+- Se organiza en los seis módulos de la **Clase 1** (diapositiva 27) y aplica
+  Clean Code, SOLID, TDD, pytest y el flujo de Git de la **Clase 2**.
 
-3. Sin Neumonía
+## Diferencia frente al sistema original
 
-Aplicación de una técnica de explicación llamada Grad-CAM para resaltar con un mapa de calor las regiones relevantes de la imagen de entrada.
+El repositorio base no incluye el archivo `.h5` de pesos que cita el proyecto.
+Esta implementación integra **un modelo entrenado distinto**, alojado en
+[kiselyovd/chest-xray-classifier](https://huggingface.co/kiselyovd/chest-xray-classifier)
+(ConvNeXtV2; la revisión está fijada en `load_model.py`).
 
----
+La primera predicción descarga pesos y requiere internet. Se usa el
+preprocesamiento académico 512×512/gris/CLAHE/[0,1] y una **adaptación adicional**
+a las entradas 224×224 RGB del modelo alternativo. **La precisión de este
+modelo con la adaptación no ha sido validada**, las puntuaciones no son riesgos
+clínicos calibrados y no se afirma reproducir el `.h5` original.
 
-## Uso de la herramienta:
+## Requisitos
 
-A continuación le explicaremos cómo empezar a utilizarla.
+- Windows (PowerShell) o Linux/macOS.
+- Python 3.13 gestionado por [`uv`](https://docs.astral.sh/uv/).
+- Git; opcionalmente `make` y Docker Desktop.
+- Internet para **instalar dependencias** y la primera descarga del modelo.
 
-Requerimientos necesarios para el funcionamiento:
+### Iniciar (Windows PowerShell)
 
-- Instale Anaconda para Windows siguiendo las siguientes instrucciones:
-  https://docs.anaconda.com/anaconda/install/windows/
+```powershell
+# Dentro del fork que creaste en GitHub y clonaste localmente:
+uv sync                 # Genera uv.lock cuando aún no existe
+uv run pytest -q        # Pruebas unitarias sin descargar el modelo
+uv run ruff check --fix .
+uv run ruff format .
+uv run ruff check .
+uv run ruff format --check .
+uv run pytest -W error -q
+uv run streamlit run app.py
+```
 
-- Abra Anaconda Prompt y ejecute las siguientes instrucciones:
+La aplicación abre normalmente en `http://localhost:8501`. El modelo puede
+necesitar una descarga grande y bastante memoria RAM.
 
-  conda create -n tf tensorflow
+**IMPORTANTE: confirmar que el archivo `uv.lock` generado quedó versionado en Git.**
+Si el fork conserva un `requirements.txt` antiguo del monolito, retirarlo del
+repositorio (`git rm requirements.txt`) para usar únicamente `uv`, como pide la clase.
 
-  conda activate tf
+### Con Make (instalado en el equipo)
 
-  cd UAO-Neumonia
+```bash
+make install
+make run
+make check
+```
 
-  pip install -r requirements.txt
+### Con Docker
 
-  python detector_neumonia.py
+```bash
+docker build -t uao-neumonia .
+docker run --rm -p 8501:8501 uao-neumonia
+```
 
-Uso de la Interfaz Gráfica:
+Abrir `http://localhost:8501`. Comprobar el build real antes de entregar;
+las pruebas unitarias no verifican la imagen de Docker.
 
-- Ingrese la cédula del paciente en la caja de texto
-- Presione el botón 'Cargar Imagen', seleccione la imagen del explorador de archivos del computador (Imagenes de prueba en https://drive.google.com/drive/folders/1WOuL0wdVC6aojy8IfssHcqZ4Up14dy0g?usp=drive_link)
-- Presione el botón 'Predecir' y espere unos segundos hasta que observe los resultados
-- Presione el botón 'Guardar' para almacenar la información del paciente en un archivo excel con extensión .csv
-- Presione el botón 'PDF' para descargar un archivo PDF con la información desplegada en la interfaz
-- Presión el botón 'Borrar' si desea cargar una nueva imagen
+## Organización de carpetas
 
----
+```text
+UAO-Neumonia/                  ← fork del proyecto original
+├── detector_neumonia.py       ← código original, conservar en el fork
+├── app.py                     ← entrada Streamlit
+├── src/neumonia/
+│   ├── read_img.py            ← DICOM y JPEG/PNG
+│   ├── preprocess_img.py      ← 512×512, gris, CLAHE, [0,1]
+│   ├── load_model.py          ← carga del modelo 1 vez
+│   ├── grad_cam.py            ← mapa de atribución
+│   ├── integrator.py          ← controlador y coordinación
+│   └── ui.py                  ← vista
+├── tests/                     ← pruebas con pytest
+├── docs/ARQUITECTURA.md       ← diagrama, contratos y decisiones
+├── docs/arquitectura.png      ← imagen requerida en el aula
+├── pyproject.toml
+├── uv.lock                    ← generar con uv sync ANTES de entregar
+├── .python-version
+├── .pre-commit-config.yaml
+├── .github/pull_request_template.md
+├── Makefile
+├── Dockerfile
+└── .gitignore
+```
 
-## Arquitectura de archivos propuesta.
+## Diseño y decisiones
 
-## detector_neumonia.py
+El patrón es MVC: `ui.py` (Vista) → `integrator.py` (Controlador) →
+`read_img.py`, `preprocess_img.py`, `load_model.py`, `grad_cam.py` (Modelo).
+La Vista no importa TensorFlow/PyTorch y no abre archivos en disco.
+El controlador acepta un motor de inferencia inyectado para sustituirlo en tests.
+Ver [documentación completa](docs/ARQUITECTURA.md) y [diagrama](docs/arquitectura.png).
 
-Contiene el diseño de la interfaz gráfica utilizando Tkinter.
+## Pruebas y estilo
 
-Los botones llaman métodos contenidos en otros scripts.
+Las pruebas de `tests/` cubren lectura, archivos inválidos, forma, rango y tipo
+512×512, interpretación de probabilidades, controlador y superposición visual.
 
-## integrator.py
+```bash
+uv run pytest -q
+uv run ruff check .
+uv run ruff format --check .
+uv run pytest -W error -q
+```
 
-Es un módulo que integra los demás scripts y retorna solamente lo necesario para ser visualizado en la interfaz gráfica.
-Retorna la clase, la probabilidad y una imagen el mapa de calor generado por Grad-CAM.
+Se incluye `.pre-commit-config.yaml`. Instalar los hooks si el entorno dispone
+de `pre-commit`:
 
-## read_img.py
+```bash
+uv run pre-commit install
+```
 
-Script que lee la imagen en formato DICOM para visualizarla en la interfaz gráfica. Además, la convierte a arreglo para su preprocesamiento.
+## Entrega con Gitflow ligero (Clase 2)
 
-## preprocess_img.py
+La presentación recomienda trabajar mediante `feature/*` y un Pull Request,
+**sin subir cambios directamente a `main`**:
 
-Script que recibe el arreglo proveniento de read_img.py, realiza las siguientes modificaciones:
+```bash
+git switch -c feature/refactor-neumonia
+# Copiar los archivos del ZIP dentro del fork (sin borrar el .git original).
+uv sync
+git add .
+git commit -m "refactor: separa pipeline de neumonia en seis modulos"
+git push -u origin feature/refactor-neumonia
+```
 
-- resize a 512x512
-- conversión a escala de grises
-- ecualización del histograma con CLAHE
-- normalización de la imagen entre 0 y 1
-- conversión del arreglo de imagen a formato de batch (tensor)
+En GitHub, usar **Compare & pull request**, completar la plantilla, pedir
+revisión a un compañero y fusionar después de verificar `make check`.
+Finalmente pegar en el aula el **enlace al repositorio propio** e indicar los
+nombres reales de quienes participaron.
 
-## load_model.py
+## Límites de la validación
 
-Script que lee el archivo binario del modelo de red neuronal convolucional previamente entrenado llamado 'WilhemNet86.h5'.
+Las pruebas sintéticas no verifican diagnóstico, precisión del modelo, ni que
+el contenedor cargue correctamente los pesos. Esa es una prueba de integración
+pendiente en el equipo del estudiante con conectividad y memoria suficientes.
 
-## grad_cam.py
-
-Script que recibe la imagen y la procesa, carga el modelo, obtiene la predicción y la capa convolucional de interés para obtener las características relevantes de la imagen.
-
----
-
-## Acerca del Modelo
-
-La red neuronal convolucional implementada (CNN) es basada en el modelo implementado por F. Pasa, V.Golkov, F. Pfeifer, D. Cremers & D. Pfeifer
-en su artículo Efcient Deep Network Architectures for Fast Chest X-Ray Tuberculosis Screening and Visualization.
-
-Está compuesta por 5 bloques convolucionales, cada uno contiene 3 convoluciones; dos secuenciales y una conexión 'skip' que evita el desvanecimiento del gradiente a medida que se avanza en profundidad.
-Con 16, 32, 48, 64 y 80 filtros de 3x3 para cada bloque respectivamente.
-
-Después de cada bloque convolucional se encuentra una capa de max pooling y después de la última una capa de Average Pooling seguida por tres capas fully-connected (Dense) de 1024, 1024 y 3 neuronas respectivamente.
-
-Para regularizar el modelo utilizamos 3 capas de Dropout al 20%; dos en los bloques 4 y 5 conv y otra después de la 1ra capa Dense.
-
-## Acerca de Grad-CAM
-
-Es una técnica utilizada para resaltar las regiones de una imagen que son importantes para la clasificación. Un mapeo de activaciones de clase para una categoría en particular indica las regiones de imagen relevantes utilizadas por la CNN para identificar esa categoría.
-
-Grad-CAM realiza el cálculo del gradiente de la salida correspondiente a la clase a visualizar con respecto a las neuronas de una cierta capa de la CNN. Esto permite tener información de la importancia de cada neurona en el proceso de decisión de esa clase en particular. Una vez obtenidos estos pesos, se realiza una combinación lineal entre el mapa de activaciones de la capa y los pesos, de esta manera, se captura la importancia del mapa de activaciones para la clase en particular y se ve reflejado en la imagen de entrada como un mapa de calor con intensidades más altas en aquellas regiones relevantes para la red con las que clasificó la imagen en cierta categoría.
-
-## Proyecto original realizado por:
-
-Isabella Torres Revelo - https://github.com/isa-tr
-Nicolas Diaz Salazar - https://github.com/nicolasdiazsalazar
+**Integrantes reales:** [agregar nombres de estudiantes participantes].

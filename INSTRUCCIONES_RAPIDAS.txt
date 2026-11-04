@@ -1,0 +1,30 @@
+ENTREGA UAO - MODULO 1: INSTRUCCIONES RAPIDAS
+
+1. En GitHub, hacer FORK del repositorio base: https://github.com/dalquinones/UAO-Neumonia
+2. Clonar TU fork. No borrar el archivo detector_neumonia.py ni la carpeta .git.
+3. Crear rama: git switch -c feature/refactor-neumonia
+4. Copiar dentro de esa carpeta TODOS los archivos de este ZIP, incluidos ocultos
+   (.python-version, .pre-commit-config.yaml, .gitignore y .github/).
+5. Abrir PowerShell EN LA CARPETA del fork:
+   uv sync
+   uv run pytest -q
+   uv run ruff check --fix .
+   uv run ruff format .
+   uv run ruff check .
+   uv run ruff format --check .
+   uv run pytest -W error -q
+   uv run streamlit run app.py
+6. VERIFICAR MANUALMENTE el sitio y la prediccion con una imagen de ejemplo.
+   La descarga del modelo exige internet y memoria.
+7. REVISAR que se genero uv.lock y que no se suben pesos .h5/.pt ni datos .dcm.
+   Si existe requirements.txt del proyecto base, retirarlo (git rm requirements.txt).
+8. Publicar rama + PR:
+   git add .
+   git commit -m "refactor: separa pipeline de neumonia en seis modulos"
+   git push -u origin feature/refactor-neumonia
+   (GitHub > Compare & pull request; pedir revision y fusionar.)
+9. Entregar en el campus EL LINK DE TU FORK, no el link del original.
+10. Completar en README los integrantes reales.
+
+RECUERDA: el modelo alternativo no es el .h5 original del profesor y sus
+predicciones NO estan validadas clinicamente. No prometer funcionalidad clinica.
